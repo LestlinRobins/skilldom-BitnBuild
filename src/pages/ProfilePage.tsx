@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Edit, Shield, Star, MessageSquare, Settings, LogOut, Camera } from 'lucide-react';
-import MessageModal from '../components/MessageModal';
-import EditProfileModal from '../components/EditProfileModal';
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  Edit,
+  Star,
+  MessageSquare,
+  Settings,
+  LogOut,
+  Camera,
+} from "lucide-react";
+import MessageModal from "../components/MessageModal";
+import EditProfileModal from "../components/EditProfileModal";
+import VerificationBadge from "../components/VerificationBadge";
 
 const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -29,13 +37,17 @@ const ProfilePage: React.FC = () => {
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <h1 className="text-xl font-bold">{user.name}</h1>
-              <Shield className="text-accent-400" size={16} />
-              <span className="text-xs text-accent-400 font-medium">AI Verified</span>
+              <VerificationBadge
+                status={user.verification_status}
+                className="text-xs"
+              />
             </div>
             <div className="flex items-center space-x-1 mb-2">
               <Star className="text-yellow-400 fill-current" size={16} />
               <span className="text-sm font-medium">{user.rating}</span>
-              <span className="text-sm text-gray-400">({user.reviews.length} reviews)</span>
+              <span className="text-sm text-gray-400">
+                ({user.reviews.length} reviews)
+              </span>
             </div>
             <p className="text-gray-300 text-sm">{user.bio}</p>
           </div>
@@ -66,7 +78,9 @@ const ProfilePage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Skill Coins Balance</p>
-              <p className="text-2xl font-bold text-accent-400">{user.skillCoins}</p>
+              <p className="text-2xl font-bold text-accent-400">
+                {user.skillCoins}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-gray-400 text-sm">This Month</p>
@@ -79,7 +93,7 @@ const ProfilePage: React.FC = () => {
         <div>
           <h3 className="text-lg font-bold mb-3">Skills</h3>
           <div className="flex flex-wrap gap-2">
-            {user.skills.map(skill => (
+            {user.skills.map((skill) => (
               <span
                 key={skill}
                 className="bg-accent-500/20 text-accent-300 px-3 py-1 rounded-full text-sm font-medium border border-accent-500/30"
@@ -113,14 +127,18 @@ const ProfilePage: React.FC = () => {
         <div>
           <h3 className="text-lg font-bold mb-3">Recent Reviews</h3>
           <div className="space-y-3">
-            {user.reviews.slice(0, 2).map(review => (
+            {user.reviews.slice(0, 2).map((review) => (
               <div key={review.id} className="bg-primary-800 rounded-xl p-4">
                 <div className="flex items-center space-x-1 mb-2">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       size={14}
-                      className={i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-500'}
+                      className={
+                        i < review.rating
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-500"
+                      }
                     />
                   ))}
                 </div>

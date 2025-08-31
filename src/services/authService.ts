@@ -30,6 +30,14 @@ export interface User {
   collaborations: string[];
   createdAt: Date;
   updatedAt: Date;
+  // Onboarding fields
+  linkedin_url?: string | null;
+  github_url?: string | null;
+  portfolio_url?: string | null;
+  other_links?: string[];
+  skills_verified?: boolean;
+  verification_status?: "pending" | "verified" | "failed" | "not_started";
+  onboarding_completed?: boolean;
 }
 
 // Google Auth Provider

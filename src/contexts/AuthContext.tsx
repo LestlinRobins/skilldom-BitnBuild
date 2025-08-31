@@ -23,6 +23,8 @@ interface AuthContextType {
   logout: () => void;
   updateUser: (updatedUser: User) => void;
   isLoading: boolean;
+  showOnboarding: boolean;
+  setShowOnboarding: (show: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -48,12 +51,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const userData = await getUserFromFirebaseUser(firebaseUser);
           setUser(userData);
+
+          // Debug logging for onboarding
+          console.log("User loaded:", {
+            id: userData?.id,
+            onboarding_completed: userData?.onboarding_completed,
+            verification_status: userData?.verification_status,
+          });
+
+          // Check if user needs onboarding
+          if (userData && !userData.onboarding_completed) {
+            console.log("Auth state change - showing onboarding modal");
+            setShowOnboarding(true);
+          } else if (userData && userData.onboarding_completed) {
+            console.log("Onboarding already completed");
+            setShowOnboarding(false);
+          }
         } catch (error) {
           console.error("Error fetching user data:", error);
           setUser(null);
         }
       } else {
         setUser(null);
+        setShowOnboarding(false);
       }
       setIsLoading(false);
     });
@@ -94,6 +114,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         skillsArray
       );
       setUser(userData);
+
+      // Check if new user needs onboarding immediately
+      if (userData && !userData.onboarding_completed) {
+        console.log("New user signup - showing onboarding modal");
+        // Small delay to ensure state is properly set
+        setTimeout(() => setShowOnboarding(true), 100);
+      }
+
       return true;
     } catch (error) {
       console.error("Signup error:", error);
@@ -108,6 +136,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsLoading(true);
       const userData = await signInWithGoogle();
       setUser(userData);
+
+      // Check if user needs onboarding (for both new and returning Google users)
+      if (userData && !userData.onboarding_completed) {
+        console.log("Google sign-in - showing onboarding modal");
+        // Small delay to ensure state is properly set
+        setTimeout(() => setShowOnboarding(true), 100);
+      }
+
       return true;
     } catch (error) {
       console.error("Google sign in error:", error);
@@ -128,6 +164,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
+    // If user completed onboarding, hide the modal
+    if (updatedUser.onboarding_completed) {
+      setShowOnboarding(false);
+    }
   };
 
   return (
@@ -140,6 +180,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         updateUser,
         isLoading,
+        showOnboarding,
+        setShowOnboarding,
       }}
     >
       {children}

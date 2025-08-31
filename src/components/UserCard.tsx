@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Star, MessageSquare, Users, Shield } from 'lucide-react';
-import MessageModal from './MessageModal';
+import React, { useState } from "react";
+import { Star, MessageSquare } from "lucide-react";
+import MessageModal from "./MessageModal";
+import { VerificationIcon } from "./VerificationBadge";
 
 interface User {
   id: string;
@@ -11,6 +12,8 @@ interface User {
   rating: number;
   reviews: any[];
   skillCoins: number;
+  verification_status?: "pending" | "verified" | "failed" | "not_started";
+  skills_verified?: boolean;
 }
 
 interface UserCardProps {
@@ -30,11 +33,11 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
               alt={user.name}
               className="w-16 h-16 rounded-full object-cover border-2 border-accent-400"
             />
-            <div className="absolute -top-1 -right-1 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center">
-              <Shield size={12} className="text-white" />
+            <div className="absolute -top-1 -right-1">
+              <VerificationIcon status={user.verification_status} />
             </div>
           </div>
-          
+
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <h3 className="text-lg font-bold text-white">{user.name}</h3>
@@ -43,12 +46,14 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
                 <span className="text-sm text-gray-400">{user.rating}</span>
               </div>
             </div>
-            
-            <p className="text-gray-300 text-sm mb-3 line-clamp-2">{user.bio}</p>
-            
+
+            <p className="text-gray-300 text-sm mb-3 line-clamp-2">
+              {user.bio}
+            </p>
+
             {/* Skills */}
             <div className="flex flex-wrap gap-1 mb-3">
-              {user.skills.slice(0, 3).map(skill => (
+              {user.skills.slice(0, 3).map((skill) => (
                 <span
                   key={skill}
                   className="bg-accent-500/20 text-accent-300 px-2 py-1 rounded text-xs font-medium"
@@ -81,8 +86,8 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
 
       {/* Message Modal */}
       {showMessageModal && (
-        <MessageModal 
-          onClose={() => setShowMessageModal(false)} 
+        <MessageModal
+          onClose={() => setShowMessageModal(false)}
           recipient={user.name}
         />
       )}

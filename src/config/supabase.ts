@@ -28,6 +28,17 @@ export interface Database {
           ongoing_courses: string[];
           completed_courses: string[];
           collaborations: string[];
+          linkedin_url: string | null;
+          github_url: string | null;
+          portfolio_url: string | null;
+          other_links: string[];
+          skills_verified: boolean;
+          verification_status:
+            | "pending"
+            | "verified"
+            | "failed"
+            | "not_started";
+          onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -43,6 +54,17 @@ export interface Database {
           ongoing_courses?: string[];
           completed_courses?: string[];
           collaborations?: string[];
+          linkedin_url?: string | null;
+          github_url?: string | null;
+          portfolio_url?: string | null;
+          other_links?: string[];
+          skills_verified?: boolean;
+          verification_status?:
+            | "pending"
+            | "verified"
+            | "failed"
+            | "not_started";
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -58,6 +80,17 @@ export interface Database {
           ongoing_courses?: string[];
           completed_courses?: string[];
           collaborations?: string[];
+          linkedin_url?: string | null;
+          github_url?: string | null;
+          portfolio_url?: string | null;
+          other_links?: string[];
+          skills_verified?: boolean;
+          verification_status?:
+            | "pending"
+            | "verified"
+            | "failed"
+            | "not_started";
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };

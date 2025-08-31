@@ -1,21 +1,8 @@
-import { supabase } from "../config/supabase";
+import { supabase, Database } from "../config/supabase";
 import { User } from "./authService";
 
-export interface SupabaseUser {
-  id: string;
-  name: string;
-  email: string;
-  avatar_url: string | null;
-  skills: string[];
-  bio: string | null;
-  rating: number;
-  skill_coins: number;
-  ongoing_courses: string[];
-  completed_courses: string[];
-  collaborations: string[];
-  created_at: string;
-  updated_at: string;
-}
+// Use the Database type from config instead of defining our own
+type SupabaseUser = Database["public"]["Tables"]["users"]["Row"];
 
 // Create a new user profile in Supabase
 export const createUserProfile = async (
@@ -33,6 +20,14 @@ export const createUserProfile = async (
     ongoing_courses: user.ongoingCourses,
     completed_courses: user.completedCourses,
     collaborations: user.collaborations,
+    // Explicitly set onboarding fields for new users
+    linkedin_url: null,
+    github_url: null,
+    portfolio_url: null,
+    other_links: [],
+    skills_verified: false,
+    verification_status: "not_started" as const,
+    onboarding_completed: false, // This ensures onboarding modal will show
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -168,6 +163,14 @@ export const convertSupabaseUserToUser = async (
     collaborations: supabaseUser.collaborations,
     createdAt: new Date(supabaseUser.created_at),
     updatedAt: new Date(supabaseUser.updated_at),
+    // Map onboarding fields
+    linkedin_url: supabaseUser.linkedin_url,
+    github_url: supabaseUser.github_url,
+    portfolio_url: supabaseUser.portfolio_url,
+    other_links: supabaseUser.other_links,
+    skills_verified: supabaseUser.skills_verified,
+    verification_status: supabaseUser.verification_status,
+    onboarding_completed: supabaseUser.onboarding_completed,
   };
 };
 
