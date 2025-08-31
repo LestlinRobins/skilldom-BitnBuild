@@ -138,3 +138,71 @@ export const useRealtimeUsers = () => {
 
   return { users };
 };
+
+// Hook for course enrollment
+export const useCourseEnrollment = () => {
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  const enrollInCourse = async (courseId: string, svcCost: number) => {
+    if (!user) throw new Error("User not authenticated");
+
+    setIsEnrolling(true);
+    setError(null);
+
+    try {
+      const { enrollUserInCourse, convertSupabaseUserToUser } = await import(
+        "../services/supabaseService"
+      );
+      const updatedSupabaseUser = await enrollUserInCourse(
+        user.id,
+        courseId,
+        svcCost
+      );
+      const updatedUser = await convertSupabaseUserToUser(updatedSupabaseUser);
+
+      return { success: true, user: updatedUser };
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to enroll in course";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  const completeCourse = async (courseId: string, svcReward: number = 100) => {
+    if (!user) throw new Error("User not authenticated");
+
+    setIsEnrolling(true);
+    setError(null);
+
+    try {
+      const { completeCourse, convertSupabaseUserToUser } = await import(
+        "../services/supabaseService"
+      );
+      const updatedSupabaseUser = await completeCourse(
+        user.id,
+        courseId,
+        svcReward
+      );
+      const updatedUser = await convertSupabaseUserToUser(updatedSupabaseUser);
+
+      return { success: true, user: updatedUser };
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to complete course";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  return {
+    enrollInCourse,
+    completeCourse,
+    isEnrolling,
+    error,
+  };
+};

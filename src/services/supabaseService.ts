@@ -202,3 +202,96 @@ export const getAllUsers = async (
 
   return data || [];
 };
+
+// Enroll user in a course
+export const enrollUserInCourse = async (
+  userId: string,
+  courseId: string,
+  svcCost: number
+): Promise<SupabaseUser> => {
+  // First get current user profile
+  const currentUser = await getUserProfile(userId);
+  if (!currentUser) {
+    throw new Error("User not found");
+  }
+
+  // Check if user has enough SVC coins
+  if (currentUser.skill_coins < svcCost) {
+    throw new Error("Insufficient SVC coins");
+  }
+
+  // Check if already enrolled
+  if (currentUser.ongoing_courses.includes(courseId)) {
+    throw new Error("Already enrolled in this course");
+  }
+
+  // Update user profile with new course and deducted coins
+  const updatedOngoingCourses = [...currentUser.ongoing_courses, courseId];
+  const updatedSkillCoins = currentUser.skill_coins - svcCost;
+
+  const { data, error } = await supabase
+    .from("users")
+    .update({
+      ongoing_courses: updatedOngoingCourses,
+      skill_coins: updatedSkillCoins,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to enroll in course: ${error.message}`);
+  }
+
+  return data;
+};
+
+// Complete a course and move it to completed courses
+export const completeCourse = async (
+  userId: string,
+  courseId: string,
+  svcReward: number = 0
+): Promise<SupabaseUser> => {
+  // First get current user profile
+  const currentUser = await getUserProfile(userId);
+  if (!currentUser) {
+    throw new Error("User not found");
+  }
+
+  // Check if course is in ongoing courses
+  if (!currentUser.ongoing_courses.includes(courseId)) {
+    throw new Error("Course not found in ongoing courses");
+  }
+
+  // Remove from ongoing, add to completed
+  const updatedOngoingCourses = currentUser.ongoing_courses.filter(
+    (id) => id !== courseId
+  );
+  const updatedCompletedCourses = [...currentUser.completed_courses];
+
+  if (!updatedCompletedCourses.includes(courseId)) {
+    updatedCompletedCourses.push(courseId);
+  }
+
+  // Add SVC reward if any
+  const updatedSkillCoins = currentUser.skill_coins + svcReward;
+
+  const { data, error } = await supabase
+    .from("users")
+    .update({
+      ongoing_courses: updatedOngoingCourses,
+      completed_courses: updatedCompletedCourses,
+      skill_coins: updatedSkillCoins,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to complete course: ${error.message}`);
+  }
+
+  return data;
+};

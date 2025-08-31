@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
-import { Clock, Users, Star, Play, CheckCircle, Languages, Loader } from 'lucide-react';
-import { users } from '../data/mockData';
-import BlockchainModal from './BlockchainModal';
+import React, { useState } from "react";
+import { Clock, Users, Star, Play, CheckCircle, Languages } from "lucide-react";
+import { users } from "../data/mockData";
+// @ts-ignore - Mock data file is JavaScript
+import { useAuth } from "../contexts/AuthContext";
+import { useCourseEnrollment } from "../hooks/useSupabase";
+import BlockchainModal from "./BlockchainModal";
+import EnrollmentModal from "./EnrollmentModal";
 
 interface Course {
   id: string;
@@ -23,30 +27,71 @@ interface CourseCardProps {
   isTeaching?: boolean;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ 
-  course, 
-  showProgress = false, 
-  completed = false, 
-  isTeaching = false 
+const CourseCard: React.FC<CourseCardProps> = ({
+  course,
+  showProgress = false,
+  completed = false,
+  isTeaching = false,
 }) => {
   const [showTranslation, setShowTranslation] = useState(false);
   const [showBlockchain, setShowBlockchain] = useState(false);
-  
-  const teacher = users.find(user => user.id === course.teacherId);
+  const [showEnrollment, setShowEnrollment] = useState(false);
+
+  const { user, updateUser } = useAuth();
+  const { enrollInCourse, completeCourse } = useCourseEnrollment();
+
+  const teacher = users.find((u: any) => u.id === course.teacherId);
   const progress = showProgress ? Math.floor(Math.random() * 80) + 20 : 0;
 
-  const handleCompleteSession = () => {
-    setShowBlockchain(true);
+  const handleCompleteSession = async () => {
+    if (!user) return;
+
+    try {
+      const result = await completeCourse(course.id, 100); // 100 SVC reward
+      if (result.success && result.user) {
+        updateUser(result.user);
+        setShowBlockchain(true);
+      }
+    } catch (error) {
+      console.error("Failed to complete course:", error);
+    }
+  };
+
+  const handleEnrollClick = () => {
+    setShowEnrollment(true);
+  };
+
+  const handleEnrollConfirm = async () => {
+    if (!user) return;
+
+    try {
+      const result = await enrollInCourse(course.id, course.svcValue);
+      if (result.success && result.user) {
+        updateUser(result.user);
+
+        // Show success notification
+        const toast = document.createElement("div");
+        toast.className =
+          "fixed top-4 left-1/2 transform -translate-x-1/2 bg-success-500 text-white px-6 py-3 rounded-lg z-50 animate-fade-in";
+        toast.textContent = `Successfully enrolled in ${course.title}!`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+    } catch (error) {
+      console.error("Enrollment failed:", error);
+      // Error handling is done in the hook
+    }
   };
 
   const toggleTranslation = () => {
     setShowTranslation(!showTranslation);
     // Show toast notification
-    const toast = document.createElement('div');
-    toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-accent-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in';
-    toast.textContent = showTranslation 
-      ? 'Live translation disabled' 
-      : 'Live translation enabled (simulation)';
+    const toast = document.createElement("div");
+    toast.className =
+      "fixed top-4 left-1/2 transform -translate-x-1/2 bg-accent-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in";
+    toast.textContent = showTranslation
+      ? "Live translation disabled"
+      : "Live translation enabled (simulation)";
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
   };
@@ -65,9 +110,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <button
                 onClick={toggleTranslation}
                 className={`p-2 rounded-full transition-colors ${
-                  showTranslation 
-                    ? 'bg-accent-500 text-white' 
-                    : 'bg-black/50 text-white hover:bg-accent-500'
+                  showTranslation
+                    ? "bg-accent-500 text-white"
+                    : "bg-black/50 text-white hover:bg-accent-500"
                 }`}
               >
                 <Languages size={16} />
@@ -75,12 +120,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
             </div>
           </div>
         )}
-        
+
         <div className="p-4">
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">{course.title}</h3>
+              <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">
+                {course.title}
+              </h3>
               <p className="text-sm text-gray-400">{course.skillCategory}</p>
             </div>
             <div className="text-right ml-4">
@@ -89,7 +136,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </div>
 
           {/* Description */}
-          <p className="text-gray-300 text-sm mb-4 line-clamp-2">{course.description}</p>
+          <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+            {course.description}
+          </p>
 
           {/* Progress Bar (if applicable) */}
           {showProgress && (
@@ -99,7 +148,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <span>{progress}%</span>
               </div>
               <div className="w-full bg-primary-600 rounded-full h-2">
-                <div 
+                <div
                   className="bg-accent-400 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
@@ -119,7 +168,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <p className="text-sm font-medium text-white">{teacher.name}</p>
                 <div className="flex items-center space-x-1">
                   <Star className="text-yellow-400 fill-current" size={12} />
-                  <span className="text-xs text-gray-400">{teacher.rating}</span>
+                  <span className="text-xs text-gray-400">
+                    {teacher.rating}
+                  </span>
                 </div>
               </div>
             </div>
@@ -163,7 +214,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <span>Manage Course</span>
               </button>
             ) : (
-              <button className="flex-1 bg-accent-500 hover:bg-accent-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+              <button
+                onClick={handleEnrollClick}
+                className="flex-1 bg-accent-500 hover:bg-accent-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
                 <Play size={18} />
                 <span>Enroll</span>
               </button>
@@ -175,6 +229,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
       {/* Blockchain Modal */}
       {showBlockchain && (
         <BlockchainModal onClose={() => setShowBlockchain(false)} />
+      )}
+
+      {/* Enrollment Modal */}
+      {showEnrollment && (
+        <EnrollmentModal
+          course={course}
+          onClose={() => setShowEnrollment(false)}
+          onConfirm={handleEnrollConfirm}
+        />
       )}
     </>
   );

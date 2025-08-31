@@ -21,6 +21,7 @@ interface AuthContextType {
   ) => Promise<boolean>;
   signInWithGoogle: () => Promise<boolean>;
   logout: () => void;
+  updateUser: (updatedUser: User) => void;
   isLoading: boolean;
 }
 
@@ -125,6 +126,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -133,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signup,
         signInWithGoogle: signInWithGoogleAuth,
         logout,
+        updateUser,
         isLoading,
       }}
     >
