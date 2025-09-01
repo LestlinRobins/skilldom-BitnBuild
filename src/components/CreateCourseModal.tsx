@@ -14,10 +14,10 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ onClose }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    skillCategory: '',
-    svcValue: 0,
+    skill_category: '',
+    svc_value: 0,
     duration: 0,
-    imageUrl: '',
+    image_url: '',
   });
   const [isCreating, setIsCreating] = useState(false);
 
@@ -28,7 +28,7 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ onClose }) => {
     try {
       const courseData = {
         ...formData,
-        teacherId: user?.id || '',
+        teacher_id: user?.id || '',
         learners: [],
         availability: ['online'], // Default to online
         created_at: new Date().toISOString(),
@@ -125,8 +125,8 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ onClose }) => {
               Skill Category
             </label>
             <select
-              name="skillCategory"
-              value={formData.skillCategory}
+              name="skill_category"
+              value={formData.skill_category}
               onChange={handleInputChange}
               className="w-full px-4 py-3 bg-primary-600 border border-primary-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-colors"
               required
@@ -147,8 +147,8 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ onClose }) => {
             </label>
             <input
               type="number"
-              name="svcValue"
-              value={formData.svcValue}
+              name="svc_value"
+              value={formData.svc_value}
               onChange={handleInputChange}
               min={0}
               className="w-full px-4 py-3 bg-primary-600 border border-primary-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-colors"
@@ -184,8 +184,8 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ onClose }) => {
             </label>
             <input
               type="url"
-              name="imageUrl"
-              value={formData.imageUrl}
+              name="image_url"
+              value={formData.image_url}
               onChange={handleInputChange}
               className="w-full px-4 py-3 bg-primary-600 border border-primary-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-colors"
               placeholder="Enter image URL"

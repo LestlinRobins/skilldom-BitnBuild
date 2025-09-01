@@ -4,13 +4,13 @@ export interface Course {
   id: string;
   title: string;
   description: string;
-  teacherId: string;
-  skillCategory: string;
-  svcValue: number;
+  teacher_id: string;
+  skill_category: string;
+  svc_value: number;
   duration: number;
   availability: string[];
   learners: string[];
-  imageUrl?: string;
+  image_url?: string;
   created_at: string;
   updated_at: string;
 }

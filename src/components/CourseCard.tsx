@@ -11,13 +11,13 @@ interface Course {
   id: string;
   title: string;
   description: string;
-  teacherId: string;
-  skillCategory: string;
-  svcValue: number;
+  teacher_id: string;
+  skill_category: string;
+  svc_value: number;
   duration: number;
   availability: string[];
   learners: string[];
-  imageUrl?: string;
+  image_url?: string;
 }
 
 interface CourseCardProps {
@@ -40,7 +40,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const { user, updateUser } = useAuth();
   const { enrollInCourse, completeCourse } = useCourseEnrollment();
 
-  const teacher = users.find((u: any) => u.id === course.teacherId);
+  const teacher = users.find((u: any) => u.id === course.teacher_id);
   const progress = showProgress ? Math.floor(Math.random() * 80) + 20 : 0;
 
   const handleCompleteSession = async () => {
@@ -65,7 +65,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     if (!user) return;
 
     try {
-      const result = await enrollInCourse(course.id, course.svcValue);
+      const result = await enrollInCourse(course.id, course.svc_value);
       if (result.success && result.user) {
         updateUser(result.user);
 
@@ -99,10 +99,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
   return (
     <>
       <div className="bg-primary-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-        {course.imageUrl && (
+        {course.image_url && (
           <div className="relative h-48 overflow-hidden">
             <img
-              src={course.imageUrl}
+              src={course.image_url}
               alt={course.title}
               className="w-full h-full object-cover"
             />
@@ -128,10 +128,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">
                 {course.title}
               </h3>
-              <p className="text-sm text-gray-400">{course.skillCategory}</p>
+              <p className="text-sm text-gray-400">{course.skill_category}</p>
             </div>
             <div className="text-right ml-4">
-              <p className="text-accent-400 font-bold">{course.svcValue} SVC</p>
+              <p className="text-accent-400 font-bold">{course.svc_value} SVC</p>
             </div>
           </div>
 

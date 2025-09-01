@@ -1,16 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { courses, badges } from '../data/mockData';
+import { badges } from '../data/mockData';
 import CourseCard from '../components/CourseCard';
-import { Trophy, Flame, Target, BookOpen, GraduationCap, Sparkles, Users } from 'lucide-react';
+import CreateCourseModal from '../components/CreateCourseModal';
+import { Trophy, Flame, Target, BookOpen, GraduationCap, Sparkles, Users, Plus } from 'lucide-react';
+import { useCourseOperations } from '../hooks/useCourseOperations';
+import type { Course } from '../services/courseService';
 
 const MyCoursesPage: React.FC = () => {
   const { user } = useAuth();
+  const { getAllCourses, getUserCourses } = useCourseOperations();
   const [activeTab, setActiveTab] = useState<'progress' | 'completed' | 'teaching'>('progress');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [userTeachingCourses, setUserTeachingCourses] = useState<Course[]>([]);
 
-  const ongoingCourses = courses.filter(course => user?.ongoingCourses.includes(course.id));
-  const completedCourses = courses.filter(course => user?.completedCourses.includes(course.id));
-  const teachingCourses = courses.filter(course => course.teacherId === user?.id);
+  useEffect(() => {
+    const loadCourses = async () => {
+      const courses = await getAllCourses();
+      setAllCourses(courses);
+      
+      if (user?.id) {
+        const teachingCourses = await getUserCourses(user.id);
+        setUserTeachingCourses(teachingCourses);
+      }
+    };
+    loadCourses();
+  }, [user?.id, getAllCourses, getUserCourses]);
+
+  const ongoingCourses = allCourses.filter(course => user?.ongoingCourses.includes(course.id));
+  const completedCourses = allCourses.filter(course => user?.completedCourses.includes(course.id));
+  const teachingCourses = userTeachingCourses;
 
   const userBadges = badges.slice(0, 3); // Mock earned badges
 
@@ -51,7 +71,7 @@ const MyCoursesPage: React.FC = () => {
         <div>
           <h3 className="text-sm font-medium text-gray-300 mb-3">Recent Achievements</h3>
           <div className="flex space-x-3 overflow-x-auto">
-            {userBadges.map(badge => {
+            {userBadges.map((badge: any) => {
               const IconComponent = iconMap[badge.icon as keyof typeof iconMap] || Trophy;
               return (
                 <div key={badge.id} className="flex-shrink-0 bg-primary-700/50 rounded-lg p-3 text-center min-w-[80px]">
@@ -133,19 +153,48 @@ const MyCoursesPage: React.FC = () => {
 
           {activeTab === 'teaching' && (
             <>
-              {teachingCourses.length > 0 ? (
-                teachingCourses.map(course => (
-                  <CourseCard key={course.id} course={course} isTeaching />
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <Sparkles className="text-gray-500 mx-auto mb-4" size={48} />
-                  <p className="text-gray-400">You're not teaching any courses yet</p>
-                  <button className="mt-4 bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                    Create Your First Course
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold text-white">Your Courses</h2>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <Plus size={18} />
+                    <span>Create Course</span>
                   </button>
                 </div>
-              )}
+                
+                {teachingCourses.length > 0 ? (
+                  teachingCourses.map((course: Course) => (
+                    <CourseCard key={course.id} course={course} isTeaching />
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <Sparkles className="text-gray-500 mx-auto mb-4" size={48} />
+                    <p className="text-gray-400">You're not teaching any courses yet</p>
+                    <button
+                      onClick={() => setShowCreateModal(true)}
+                      className="mt-4 bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Plus size={18} />
+                      <span>Create Your First Course</span>
+                    </button>
+                  </div>
+                )}
+
+                {showCreateModal && (
+                  <CreateCourseModal
+                    onClose={() => {
+                      setShowCreateModal(false);
+                      // Refresh the courses list after creating a new course
+                      if (user?.id) {
+                        getUserCourses(user.id).then(setUserTeachingCourses);
+                      }
+                    }}
+                  />
+                )}
+              </div>
             </>
           )}
         </div>
