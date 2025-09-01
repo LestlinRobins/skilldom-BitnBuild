@@ -2,18 +2,7 @@ import React, { useState } from "react";
 import { X, Play, Coins, Clock, Users } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  teacherId: string;
-  skillCategory: string;
-  svcValue: number;
-  duration: number;
-  availability: string[];
-  learners: string[];
-  imageUrl?: string;
-}
+import type { Course } from '../services/courseService';
 
 interface EnrollmentModalProps {
   course: Course;
@@ -29,7 +18,7 @@ const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
   const [isEnrolling, setIsEnrolling] = useState(false);
   const { user } = useAuth();
 
-  const hasEnoughCoins = user ? user.skillCoins >= course.svcValue : false;
+  const hasEnoughCoins = user ? user.skillCoins >= course.svc_value : false;
 
   const handleEnroll = async () => {
     if (!hasEnoughCoins) return;
@@ -61,9 +50,9 @@ const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
 
         {/* Course Info */}
         <div className="mb-6">
-          {course.imageUrl && (
+          {course.image_url && (
             <img
-              src={course.imageUrl}
+              src={course.image_url}
               alt={course.title}
               className="w-full h-32 object-cover rounded-lg mb-4"
             />
@@ -95,7 +84,7 @@ const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
             <span className="text-gray-300">Course Cost:</span>
             <div className="flex items-center space-x-1 text-accent-400 font-bold">
               <Coins size={16} />
-              <span>{course.svcValue} SVC</span>
+              <span>{course.svc_value} SVC</span>
             </div>
           </div>
 
@@ -117,7 +106,7 @@ const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
               }`}
             >
               <Coins size={16} />
-              <span>{(user?.skillCoins || 0) - course.svcValue} SVC</span>
+              <span>{(user?.skillCoins || 0) - course.svc_value} SVC</span>
             </div>
           </div>
         </div>
@@ -127,7 +116,7 @@ const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-4">
             <p className="text-red-400 text-sm">
               Insufficient SVC coins. You need{" "}
-              {course.svcValue - (user?.skillCoins || 0)} more SVC to enroll in
+              {course.svc_value - (user?.skillCoins || 0)} more SVC to enroll in
               this course.
             </p>
           </div>

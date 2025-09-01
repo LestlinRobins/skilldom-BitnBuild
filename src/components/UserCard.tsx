@@ -23,6 +23,10 @@ interface UserCardProps {
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
   const [showMessageModal, setShowMessageModal] = useState(false);
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
       <div className="bg-primary-800 rounded-xl p-4 hover:bg-primary-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">

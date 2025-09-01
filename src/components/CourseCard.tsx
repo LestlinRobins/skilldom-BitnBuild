@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Clock, Users, Star, Play, CheckCircle, Languages } from "lucide-react";
-import { users } from "../data/mockData";
-// @ts-ignore - Mock data file is JavaScript
 import { useAuth } from "../contexts/AuthContext";
 import { useCourseEnrollment } from "../hooks/useSupabase";
+import { useUserOperations } from "../hooks/useUserOperations";
+import type { Database } from "../config/supabase";
 import BlockchainModal from "./BlockchainModal";
 import EnrollmentModal from "./EnrollmentModal";
+
+type SupabaseUser = Database['public']['Tables']['users']['Row'];
 
 interface Course {
   id: string;
@@ -40,8 +42,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const { user, updateUser } = useAuth();
   const { enrollInCourse, completeCourse } = useCourseEnrollment();
 
-  const teacher = users.find((u: any) => u.id === course.teacher_id);
+  const { getUser } = useUserOperations();
+  const [teacher, setTeacher] = useState<SupabaseUser | null>(null);
   const progress = showProgress ? Math.floor(Math.random() * 80) + 20 : 0;
+
+  useEffect(() => {
+    const loadTeacher = async () => {
+      if (course.teacher_id) {
+        const teacherData = await getUser(course.teacher_id);
+        setTeacher(teacherData);
+      }
+    };
+    loadTeacher();
+  }, [course.teacher_id, getUser]);
 
   const handleCompleteSession = async () => {
     if (!user) return;
@@ -160,7 +173,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {teacher && (
             <div className="flex items-center space-x-3 mb-4">
               <img
-                src={teacher.avatarUrl}
+                src={teacher.avatar_url || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150"}
                 alt={teacher.name}
                 className="w-8 h-8 rounded-full object-cover"
               />
@@ -169,7 +182,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 <div className="flex items-center space-x-1">
                   <Star className="text-yellow-400 fill-current" size={12} />
                   <span className="text-xs text-gray-400">
-                    {teacher.rating}
+                    {teacher.rating || 0}
                   </span>
                 </div>
               </div>

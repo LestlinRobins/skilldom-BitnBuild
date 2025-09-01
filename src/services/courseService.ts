@@ -126,12 +126,23 @@ export const getUserCourses = async (userId: string): Promise<Course[]> => {
 };
 
 export const searchCourses = async (query: string): Promise<Course[]> => {
-  const { data, error } = await supabase
-    .from("courses")
-    .select("*")
-    .or(
-      `title.ilike.%${query}%,description.ilike.%${query}%,skill_category.ilike.%${query}%`
-    )
+  // Split the query into keywords
+  const keywords = query.toLowerCase().split(/\s+/).filter(Boolean);
+  
+  if (keywords.length === 0) {
+    return [];
+  }
+
+  let searchQuery = supabase.from("courses").select("*");
+
+  // Build the search filter
+  const searchFilters = keywords.map(keyword => 
+    `or(title.ilike.%${keyword}%,description.ilike.%${keyword}%,skill_category.ilike.%${keyword}%)`
+  ).join(',');
+
+  const { data, error } = await searchQuery
+    .or(searchFilters)
+    .order('created_at', { ascending: false })
     .limit(20);
 
   if (error) {
