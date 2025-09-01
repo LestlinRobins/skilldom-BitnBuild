@@ -1,14 +1,14 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Home, Search, Users, BookOpen, User } from 'lucide-react';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { Home, Search, Users, BookOpen, User } from "lucide-react";
 
 const BottomNav: React.FC = () => {
   const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: '/search', icon: Search, label: 'Search' },
-    { path: '/collaborate', icon: Users, label: 'Collaborate' },
-    { path: '/courses', icon: BookOpen, label: 'My Courses' },
-    { path: '/profile', icon: User, label: 'Profile' },
+    { path: "/", icon: Home, label: "Home" },
+    { path: "/search", icon: Search, label: "Search" },
+    { path: "/collaborate", icon: Users, label: "Collab" },
+    { path: "/courses", icon: BookOpen, label: "Courses" },
+    { path: "/profile", icon: User, label: "Profile" },
   ];
 
   return (
@@ -21,8 +21,8 @@ const BottomNav: React.FC = () => {
             className={({ isActive }) =>
               `flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 ${
                 isActive
-                  ? 'text-accent-400 bg-accent-400/10'
-                  : 'text-gray-400 hover:text-accent-400 hover:bg-accent-400/5'
+                  ? "text-accent-400 bg-accent-400/10"
+                  : "text-gray-400 hover:text-accent-400 hover:bg-accent-400/5"
               }`
             }
           >
