@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Star, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import MessageModal from "./MessageModal";
 import { VerificationIcon } from "./VerificationBadge";
 
@@ -22,6 +23,7 @@ interface UserCardProps {
 
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const navigate = useNavigate();
 
   if (!user) {
     return null;
@@ -74,7 +76,10 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
 
             {/* Actions */}
             <div className="flex space-x-2">
-              <button className="flex-1 bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-3 rounded-lg transition-colors text-sm">
+              <button
+                onClick={() => navigate(`/user/${user.id}`)}
+                className="flex-1 bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-3 rounded-lg transition-colors text-sm"
+              >
                 View Profile
               </button>
               <button

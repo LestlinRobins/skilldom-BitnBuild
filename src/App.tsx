@@ -1,4 +1,3 @@
-import React from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Layout from "./components/Layout";
@@ -8,6 +7,7 @@ import SearchPage from "./pages/SearchPage";
 import CollaborationHub from "./pages/CollaborationHub";
 import MyCoursesPage from "./pages/MyCoursesPage";
 import ProfilePage from "./pages/ProfilePage";
+import UserProfilePage from "./pages/UserProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppContent from "./components/AppContent";
 
@@ -43,6 +43,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+      },
+      {
+        path: "user/:userId",
+        element: <UserProfilePage />,
       },
     ],
   },
