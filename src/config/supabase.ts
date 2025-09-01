@@ -15,6 +15,50 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export interface Database {
   public: {
     Tables: {
+      courses: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          teacherId: string;
+          skillCategory: string;
+          svcValue: number;
+          duration: number;
+          availability: string[];
+          learners: string[];
+          imageUrl: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description: string;
+          teacherId: string;
+          skillCategory: string;
+          svcValue: number;
+          duration: number;
+          availability?: string[];
+          learners?: string[];
+          imageUrl?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string;
+          teacherId?: string;
+          skillCategory?: string;
+          svcValue?: number;
+          duration?: number;
+          availability?: string[];
+          learners?: string[];
+          imageUrl?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       users: {
         Row: {
           id: string; // Firebase UID (TEXT, not UUID)
