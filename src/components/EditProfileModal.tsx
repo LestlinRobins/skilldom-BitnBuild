@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { updateUserProfile } from '../services/supabaseService';
-import Toast from './Toast';
+import React, { useState } from "react";
+import { X, Save } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { updateUserProfile } from "../services/supabaseService";
+import Toast from "./Toast";
 
 interface EditProfileModalProps {
   onClose: () => void;
@@ -11,33 +11,33 @@ interface EditProfileModalProps {
 const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
   const { user, updateUser } = useAuth();
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    bio: user?.bio || '',
-    skills: user?.skills.join(', ') || '',
-    linkedin_url: user?.linkedin_url || '',
-    github_url: user?.github_url || '',
-    portfolio_url: user?.portfolio_url || ''
+    name: user?.name || "",
+    bio: user?.bio || "",
+    skills: user?.skills.join(", ") || "",
+    linkedin_url: user?.linkedin_url || "",
+    github_url: user?.github_url || "",
+    portfolio_url: user?.portfolio_url || "",
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    
+
     setIsSaving(true);
-    setError('');
-    
+    setError("");
+
     try {
       // Validate URLs before submitting
       validateUrls();
-      
+
       // Parse skills from comma-separated string
       const skillsArray = formData.skills
-        .split(',')
-        .map(skill => skill.trim())
-        .filter(skill => skill.length > 0);
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill.length > 0);
 
       // Update profile in Supabase
       await updateUserProfile(user.id, {
@@ -47,7 +47,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
         linkedin_url: formData.linkedin_url || null,
         github_url: formData.github_url || null,
         portfolio_url: formData.portfolio_url || null,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
 
       // Update user context with new data
@@ -59,37 +59,38 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
         linkedin_url: formData.linkedin_url || null,
         github_url: formData.github_url || null,
         portfolio_url: formData.portfolio_url || null,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       // Show success feedback
       setShowSuccessToast(true);
-      
+
       // Close modal after short delay
       setTimeout(() => {
         onClose();
       }, 1000);
-      
     } catch (err) {
-      console.error('Error updating profile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
+      console.error("Error updating profile:", err);
+      setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
     // Clear error when user starts typing
-    if (error) setError('');
+    if (error) setError("");
   };
 
   const validateUrls = () => {
-    const urlFields = ['linkedin_url', 'github_url', 'portfolio_url'] as const;
-    
+    const urlFields = ["linkedin_url", "github_url", "portfolio_url"] as const;
+
     for (const field of urlFields) {
       const value = formData[field];
       if (value && value.trim()) {
@@ -97,9 +98,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
           new URL(value);
         } catch {
           const fieldNames = {
-            linkedin_url: 'LinkedIn URL',
-            github_url: 'GitHub URL', 
-            portfolio_url: 'Portfolio URL'
+            linkedin_url: "LinkedIn URL",
+            github_url: "GitHub URL",
+            portfolio_url: "Portfolio URL",
           };
           throw new Error(`Please enter a valid ${fieldNames[field]}`);
         }
@@ -176,20 +177,23 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
           {/* Professional Links Section */}
           <div className="border-t border-primary-600 pt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-300">Professional Links</h3>
+              <h3 className="text-sm font-medium text-gray-300">
+                Professional Links
+              </h3>
               {user?.skills_verified && (
                 <span className="text-xs text-green-400 flex items-center gap-1">
                   ✓ Verified
                 </span>
               )}
             </div>
-            
+
             {user?.skills_verified && (
               <p className="text-xs text-gray-400 mb-3">
-                Updating your professional links may affect your verification status.
+                Updating your professional links may affect your verification
+                status.
               </p>
             )}
-            
+
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1">
@@ -256,7 +260,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose }) => {
             )}
           </button>
         </form>
-        
+
         {/* Success Toast */}
         {showSuccessToast && (
           <Toast
