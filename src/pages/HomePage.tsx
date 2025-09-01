@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { courses } from '../data/mockData';
-import CourseCard from '../components/CourseCard';
-import SkillSOSModal from '../components/SkillSOSModal';
-import { Plus, Sparkles, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import CourseCard from "../components/CourseCard";
+import SkillSOSModal from "../components/SkillSOSModal";
+import { Plus, Sparkles, TrendingUp } from "lucide-react";
+import { useCourseOperations } from "../hooks/useCourseOperations";
+import type { Course } from "../services/courseService";
 
 const HomePage: React.FC = () => {
   const { user } = useAuth();
+  const { getAllCoursesWithMockData } = useCourseOperations();
   const [showSkillSOS, setShowSkillSOS] = useState(false);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const recommendedCourses = courses.slice(0, 3);
-  const trendingCourses = courses.slice(2, 5);
+  useEffect(() => {
+    const loadCourses = async () => {
+      setIsLoading(true);
+      try {
+        const courses = await getAllCoursesWithMockData();
+        setAllCourses(courses);
+      } catch (error) {
+        console.error("Failed to load courses:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCourses();
+  }, [getAllCoursesWithMockData]);
+
+  const recommendedCourses = allCourses.slice(0, 3);
+  const trendingCourses = allCourses.slice(2, 5);
 
   return (
     <div className="min-h-screen bg-primary-700 text-white">
@@ -23,7 +42,9 @@ const HomePage: React.FC = () => {
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-300">Skill Coins</p>
-            <p className="text-2xl font-bold text-accent-400">{user?.skillCoins || 0}</p>
+            <p className="text-2xl font-bold text-accent-400">
+              {user?.skillCoins || 0}
+            </p>
           </div>
         </div>
 
@@ -34,7 +55,9 @@ const HomePage: React.FC = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm text-gray-300">AI Assistant</p>
-            <p className="text-white">"Try 'Advanced React Hooks' - perfect for your skill level!"</p>
+            <p className="text-white">
+              "Try 'Advanced React Hooks' - perfect for your skill level!"
+            </p>
           </div>
         </div>
       </div>
@@ -48,11 +71,19 @@ const HomePage: React.FC = () => {
             <h2 className="text-xl font-bold">Recommended for You</h2>
           </div>
           <div className="flex space-x-4 overflow-x-auto pb-4">
-            {recommendedCourses.map(course => (
-              <div key={course.id} className="flex-shrink-0 w-80">
-                <CourseCard course={course} />
-              </div>
-            ))}
+            {isLoading
+              ? // Loading skeleton
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 w-80 h-64 bg-primary-600 rounded-xl animate-pulse"
+                  ></div>
+                ))
+              : recommendedCourses.map((course) => (
+                  <div key={course.id} className="flex-shrink-0 w-80">
+                    <CourseCard course={course} />
+                  </div>
+                ))}
           </div>
         </section>
 
@@ -63,11 +94,19 @@ const HomePage: React.FC = () => {
             <h2 className="text-xl font-bold">Trending Skills</h2>
           </div>
           <div className="flex space-x-4 overflow-x-auto pb-4">
-            {trendingCourses.map(course => (
-              <div key={course.id} className="flex-shrink-0 w-80">
-                <CourseCard course={course} />
-              </div>
-            ))}
+            {isLoading
+              ? // Loading skeleton
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 w-80 h-64 bg-primary-600 rounded-xl animate-pulse"
+                  ></div>
+                ))
+              : trendingCourses.map((course) => (
+                  <div key={course.id} className="flex-shrink-0 w-80">
+                    <CourseCard course={course} />
+                  </div>
+                ))}
           </div>
         </section>
       </div>
@@ -81,9 +120,7 @@ const HomePage: React.FC = () => {
       </button>
 
       {/* Skill SOS Modal */}
-      {showSkillSOS && (
-        <SkillSOSModal onClose={() => setShowSkillSOS(false)} />
-      )}
+      {showSkillSOS && <SkillSOSModal onClose={() => setShowSkillSOS(false)} />}
     </div>
   );
 };

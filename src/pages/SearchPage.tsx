@@ -1,53 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Sparkles } from 'lucide-react';
-import { courses, users, skillCategories } from '../data/mockData';
-import CourseCard from '../components/CourseCard';
-import UserCard from '../components/UserCard';
+import React, { useState, useEffect } from "react";
+import { Search, Filter, Sparkles } from "lucide-react";
+import { users, skillCategories } from "../data/mockData";
+import CourseCard from "../components/CourseCard";
+import UserCard from "../components/UserCard";
+import { useCourseOperations } from "../hooks/useCourseOperations";
+import type { Course } from "../services/courseService";
 
 const SearchPage: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'courses' | 'people'>('courses');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const { getAllCoursesWithMockData, searchAllCourses } = useCourseOperations();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"courses" | "people">("courses");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+
+  // Load all courses on component mount
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const courses = await getAllCoursesWithMockData();
+        setAllCourses(courses);
+      } catch (error) {
+        console.error("Failed to load courses:", error);
+      }
+    };
+    loadCourses();
+  }, [getAllCoursesWithMockData]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
       setIsSearching(true);
-      
+
       // Simulate AI search delay
-      const searchTimeout = setTimeout(() => {
-        const filteredResults = activeTab === 'courses' 
-          ? courses.filter(course => 
-              course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              course.skillCategory.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-          : users.filter(user =>
-              user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              user.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
-              user.bio.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        
-        setResults(filteredResults);
-        setIsSearching(false);
+      const searchTimeout = setTimeout(async () => {
+        try {
+          const filteredResults =
+            activeTab === "courses"
+              ? await searchAllCourses(searchQuery)
+              : users.filter(
+                  (user: any) =>
+                    user.name
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase()) ||
+                    user.skills.some((skill: any) =>
+                      skill.toLowerCase().includes(searchQuery.toLowerCase())
+                    ) ||
+                    user.bio.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+
+          setResults(filteredResults);
+        } catch (error) {
+          console.error("Search failed:", error);
+          setResults([]);
+        } finally {
+          setIsSearching(false);
+        }
       }, 1000);
 
       return () => clearTimeout(searchTimeout);
     } else {
-      setResults(activeTab === 'courses' ? courses : users);
+      setResults(activeTab === "courses" ? allCourses : users);
       setIsSearching(false);
     }
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, searchAllCourses, allCourses]);
 
   useEffect(() => {
-    setResults(activeTab === 'courses' ? courses : users);
-  }, [activeTab]);
+    setResults(activeTab === "courses" ? allCourses : users);
+  }, [activeTab, allCourses]);
 
-  const filteredResults = selectedCategory 
-    ? results.filter(item => 
-        activeTab === 'courses' 
-          ? item.skillCategory === selectedCategory
+  const filteredResults = selectedCategory
+    ? results.filter((item: any) =>
+        activeTab === "courses"
+          ? item.skill_category === selectedCategory
           : item.skills.includes(selectedCategory)
       )
     : results;
@@ -57,10 +82,13 @@ const SearchPage: React.FC = () => {
       {/* Header */}
       <div className="bg-primary-800 p-6 space-y-4">
         <h1 className="text-2xl font-bold">Discover Skills</h1>
-        
+
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <Search
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={20}
+          />
           <input
             type="text"
             value={searchQuery}
@@ -73,21 +101,21 @@ const SearchPage: React.FC = () => {
         {/* Tabs */}
         <div className="flex space-x-2">
           <button
-            onClick={() => setActiveTab('courses')}
+            onClick={() => setActiveTab("courses")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'courses'
-                ? 'bg-accent-500 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-primary-600'
+              activeTab === "courses"
+                ? "bg-accent-500 text-white"
+                : "text-gray-400 hover:text-white hover:bg-primary-600"
             }`}
           >
             Courses
           </button>
           <button
-            onClick={() => setActiveTab('people')}
+            onClick={() => setActiveTab("people")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'people'
-                ? 'bg-accent-500 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-primary-600'
+              activeTab === "people"
+                ? "bg-accent-500 text-white"
+                : "text-gray-400 hover:text-white hover:bg-primary-600"
             }`}
           >
             People
@@ -98,23 +126,23 @@ const SearchPage: React.FC = () => {
         <div className="flex items-center space-x-3 overflow-x-auto pb-2">
           <Filter className="text-gray-400 flex-shrink-0" size={20} />
           <button
-            onClick={() => setSelectedCategory('')}
+            onClick={() => setSelectedCategory("")}
             className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               !selectedCategory
-                ? 'bg-accent-500 text-white'
-                : 'bg-primary-600 text-gray-300 hover:bg-primary-500'
+                ? "bg-accent-500 text-white"
+                : "bg-primary-600 text-gray-300 hover:bg-primary-500"
             }`}
           >
             All
           </button>
-          {skillCategories.slice(0, 6).map(category => (
+          {skillCategories.slice(0, 6).map((category: any) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
               className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 selectedCategory === category
-                  ? 'bg-accent-500 text-white'
-                  : 'bg-primary-600 text-gray-300 hover:bg-primary-500'
+                  ? "bg-accent-500 text-white"
+                  : "bg-primary-600 text-gray-300 hover:bg-primary-500"
               }`}
             >
               {category}
@@ -139,13 +167,13 @@ const SearchPage: React.FC = () => {
               {filteredResults.length} {activeTab} found
             </p>
             <div className="grid grid-cols-1 gap-4 animate-fade-in">
-              {filteredResults.map(item => (
-                activeTab === 'courses' ? (
+              {filteredResults.map((item) =>
+                activeTab === "courses" ? (
                   <CourseCard key={item.id} course={item} />
                 ) : (
                   <UserCard key={item.id} user={item} />
                 )
-              ))}
+              )}
             </div>
           </div>
         )}

@@ -1,4 +1,21 @@
 import { supabase } from "../config/supabase";
+import { courses as mockCourses } from "../data/mockData";
+
+// Transform mock course to match our Course interface
+const transformMockCourse = (mockCourse: any): Course => ({
+  id: mockCourse.id,
+  title: mockCourse.title,
+  description: mockCourse.description,
+  teacher_id: mockCourse.teacherId,
+  skill_category: mockCourse.skillCategory,
+  svc_value: mockCourse.svcValue,
+  duration: mockCourse.duration,
+  availability: mockCourse.availability,
+  learners: mockCourse.learners || [],
+  image_url: mockCourse.imageUrl,
+  created_at: new Date().toISOString(), // Mock timestamp
+  updated_at: new Date().toISOString(),
+});
 
 export interface Course {
   id: string;
@@ -122,4 +139,56 @@ export const searchCourses = async (query: string): Promise<Course[]> => {
   }
 
   return data || [];
+};
+
+// Get all courses including both real and mock data
+export const getAllCoursesWithMockData = async (
+  limit: number = 50
+): Promise<Course[]> => {
+  try {
+    // Get real courses from Supabase
+    const realCourses = await getAllCourses(limit);
+
+    // Transform mock courses to match our interface
+    const transformedMockCourses = mockCourses.map(transformMockCourse);
+
+    // Combine and return (real courses first, then mock)
+    return [...realCourses, ...transformedMockCourses];
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    // Fallback to mock data if Supabase fails
+    return mockCourses.map(transformMockCourse);
+  }
+};
+
+// Search both real and mock courses
+export const searchAllCourses = async (query: string): Promise<Course[]> => {
+  try {
+    // Search real courses
+    const realCourses = await searchCourses(query);
+
+    // Search mock courses
+    const mockCoursesFiltered = mockCourses
+      .filter(
+        (course: any) =>
+          course.title.toLowerCase().includes(query.toLowerCase()) ||
+          course.description.toLowerCase().includes(query.toLowerCase()) ||
+          course.skillCategory.toLowerCase().includes(query.toLowerCase())
+      )
+      .map(transformMockCourse);
+
+    // Combine results
+    return [...realCourses, ...mockCoursesFiltered];
+  } catch (error) {
+    console.error("Error searching courses:", error);
+    // Fallback to filtering mock data
+    return mockCourses
+      .filter(
+        (course: any) =>
+          course.title.toLowerCase().includes(query.toLowerCase()) ||
+          course.description.toLowerCase().includes(query.toLowerCase()) ||
+          course.skillCategory.toLowerCase().includes(query.toLowerCase())
+      )
+      .map(transformMockCourse);
+  }
 };
