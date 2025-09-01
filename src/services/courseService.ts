@@ -15,12 +15,14 @@ export interface Course {
   updated_at: string;
 }
 
-export const createCourse = async (courseData: Omit<Course, 'id' | 'updated_at'>): Promise<Course> => {
+export const createCourse = async (
+  courseData: Omit<Course, "id" | "updated_at">
+): Promise<Course> => {
   const { data, error } = await supabase
-    .from('courses')
+    .from("courses")
     .insert({
       ...courseData,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .select()
     .single();
@@ -34,13 +36,13 @@ export const createCourse = async (courseData: Omit<Course, 'id' | 'updated_at'>
 
 export const getCourse = async (courseId: string): Promise<Course | null> => {
   const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('id', courseId)
+    .from("courses")
+    .select("*")
+    .eq("id", courseId)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       return null;
     }
     throw new Error(`Failed to get course: ${error.message}`);
@@ -51,15 +53,15 @@ export const getCourse = async (courseId: string): Promise<Course | null> => {
 
 export const updateCourse = async (
   courseId: string,
-  updates: Partial<Omit<Course, 'id' | 'created_at'>>
+  updates: Partial<Omit<Course, "id" | "created_at">>
 ): Promise<Course> => {
   const { data, error } = await supabase
-    .from('courses')
+    .from("courses")
     .update({
       ...updates,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', courseId)
+    .eq("id", courseId)
     .select()
     .single();
 
@@ -71,10 +73,7 @@ export const updateCourse = async (
 };
 
 export const deleteCourse = async (courseId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('courses')
-    .delete()
-    .eq('id', courseId);
+  const { error } = await supabase.from("courses").delete().eq("id", courseId);
 
   if (error) {
     throw new Error(`Failed to delete course: ${error.message}`);
@@ -83,9 +82,9 @@ export const deleteCourse = async (courseId: string): Promise<void> => {
 
 export const getAllCourses = async (limit: number = 50): Promise<Course[]> => {
   const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("courses")
+    .select("*")
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -97,10 +96,10 @@ export const getAllCourses = async (limit: number = 50): Promise<Course[]> => {
 
 export const getUserCourses = async (userId: string): Promise<Course[]> => {
   const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('teacherId', userId)
-    .order('created_at', { ascending: false });
+    .from("courses")
+    .select("*")
+    .eq("teacher_id", userId)
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(`Failed to get user courses: ${error.message}`);
@@ -111,9 +110,11 @@ export const getUserCourses = async (userId: string): Promise<Course[]> => {
 
 export const searchCourses = async (query: string): Promise<Course[]> => {
   const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .or(`title.ilike.%${query}%,description.ilike.%${query}%,skillCategory.ilike.%${query}%`)
+    .from("courses")
+    .select("*")
+    .or(
+      `title.ilike.%${query}%,description.ilike.%${query}%,skill_category.ilike.%${query}%`
+    )
     .limit(20);
 
   if (error) {

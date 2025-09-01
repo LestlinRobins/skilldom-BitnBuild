@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { X, Plus } from 'lucide-react';
-import { skillCategories } from '../data/mockData';
-import { useAuth } from '../contexts/AuthContext';
-import { useCourseOperations } from '../hooks/useCourseOperations';
+import React, { useState } from "react";
+import { X, Plus } from "lucide-react";
+import { skillCategories } from "../data/mockData";
+import { useAuth } from "../contexts/AuthContext";
+import { useCourseOperations } from "../hooks/useCourseOperations";
 
 interface CreateCourseModalProps {
   onClose: () => void;
@@ -12,48 +12,50 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ onClose }) => {
   const { user } = useAuth();
   const { createCourse } = useCourseOperations();
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    skill_category: '',
+    title: "",
+    description: "",
+    skill_category: "",
     svc_value: 0,
     duration: 0,
-    image_url: '',
+    image_url: "",
   });
   const [isCreating, setIsCreating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsCreating(true);
-    
+
     try {
       const courseData = {
         ...formData,
-        teacher_id: user?.id || '',
+        teacher_id: user?.id || "",
         learners: [],
-        availability: ['online'], // Default to online
+        availability: ["online"], // Default to online
         created_at: new Date().toISOString(),
       };
-      
+
       const result = await createCourse(courseData);
-      
+
       if (!result.success) {
         throw new Error(result.error);
       }
-      
+
       // Show success toast
-      const toast = document.createElement('div');
-      toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-success-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in';
-      toast.textContent = 'Course created successfully!';
+      const toast = document.createElement("div");
+      toast.className =
+        "fixed top-4 left-1/2 transform -translate-x-1/2 bg-success-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in";
+      toast.textContent = "Course created successfully!";
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
-      
+
       onClose();
     } catch (error) {
-      console.error('Failed to create course:', error);
+      console.error("Failed to create course:", error);
       // Show error toast
-      const toast = document.createElement('div');
-      toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-error-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in';
-      toast.textContent = 'Failed to create course. Please try again.';
+      const toast = document.createElement("div");
+      toast.className =
+        "fixed top-4 left-1/2 transform -translate-x-1/2 bg-error-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in";
+      toast.textContent = "Failed to create course. Please try again.";
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
     } finally {
@@ -62,12 +64,17 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({ onClose }) => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'svcValue' || name === 'duration' ? parseInt(value) || 0 : value,
+      [name]:
+        name === "svc_value" || name === "duration"
+          ? parseInt(value) || 0
+          : value,
     }));
   };
 
