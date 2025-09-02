@@ -298,3 +298,55 @@ export const completeCourse = async (
 
   return data;
 };
+
+// Storage functions for file uploads
+export const uploadFile = async (
+  file: File,
+  bucket: string,
+  path?: string
+): Promise<{ url: string; path: string }> => {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(2)}.${fileExt}`;
+  const filePath = path ? `${path}/${fileName}` : fileName;
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(filePath, file);
+
+  if (error) {
+    throw new Error(`Failed to upload file: ${error.message}`);
+  }
+
+  // Get the public URL
+  const { data: urlData } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(data.path);
+
+  return {
+    url: urlData.publicUrl,
+    path: data.path,
+  };
+};
+
+export const deleteFile = async (
+  bucket: string,
+  path: string
+): Promise<void> => {
+  const { error } = await supabase.storage.from(bucket).remove([path]);
+
+  if (error) {
+    throw new Error(`Failed to delete file: ${error.message}`);
+  }
+};
+
+// Course-specific media upload
+export const uploadCourseMedia = async (
+  file: File,
+  courseId: string,
+  mediaType: "image" | "video" | "document"
+): Promise<{ url: string; path: string }> => {
+  const path = `courses/${courseId}/${mediaType}s`;
+  return uploadFile(file, "course-media", path);
+};

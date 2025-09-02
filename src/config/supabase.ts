@@ -27,6 +27,9 @@ export interface Database {
           availability: string[];
           learners: string[];
           image_url: string | null;
+          video_urls: string[];
+          document_urls: string[];
+          media_files: string[];
           created_at: string;
           updated_at: string;
         };
@@ -41,6 +44,9 @@ export interface Database {
           availability?: string[];
           learners?: string[];
           image_url?: string | null;
+          video_urls?: string[];
+          document_urls?: string[];
+          media_files?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -55,6 +61,9 @@ export interface Database {
           availability?: string[];
           learners?: string[];
           image_url?: string | null;
+          video_urls?: string[];
+          document_urls?: string[];
+          media_files?: string[];
           created_at?: string;
           updated_at?: string;
         };

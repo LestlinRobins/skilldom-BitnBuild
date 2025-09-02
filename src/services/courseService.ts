@@ -13,6 +13,9 @@ const transformMockCourse = (mockCourse: any): Course => ({
   availability: mockCourse.availability,
   learners: mockCourse.learners || [],
   image_url: mockCourse.imageUrl,
+  video_urls: mockCourse.videoUrls || [],
+  document_urls: mockCourse.documentUrls || [],
+  media_files: mockCourse.mediaFiles || [],
   created_at: new Date().toISOString(), // Mock timestamp
   updated_at: new Date().toISOString(),
 });
@@ -28,6 +31,9 @@ export interface Course {
   availability: string[];
   learners: string[];
   image_url?: string;
+  video_urls?: string[];
+  document_urls?: string[];
+  media_files?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -128,7 +134,7 @@ export const getUserCourses = async (userId: string): Promise<Course[]> => {
 export const searchCourses = async (query: string): Promise<Course[]> => {
   // Split the query into keywords
   const keywords = query.toLowerCase().split(/\s+/).filter(Boolean);
-  
+
   if (keywords.length === 0) {
     return [];
   }
@@ -136,13 +142,16 @@ export const searchCourses = async (query: string): Promise<Course[]> => {
   let searchQuery = supabase.from("courses").select("*");
 
   // Build the search filter
-  const searchFilters = keywords.map(keyword => 
-    `or(title.ilike.%${keyword}%,description.ilike.%${keyword}%,skill_category.ilike.%${keyword}%)`
-  ).join(',');
+  const searchFilters = keywords
+    .map(
+      (keyword) =>
+        `or(title.ilike.%${keyword}%,description.ilike.%${keyword}%,skill_category.ilike.%${keyword}%)`
+    )
+    .join(",");
 
   const { data, error } = await searchQuery
     .or(searchFilters)
-    .order('created_at', { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(20);
 
   if (error) {
