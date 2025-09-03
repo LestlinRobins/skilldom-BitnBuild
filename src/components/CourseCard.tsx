@@ -4,29 +4,20 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCourseEnrollment } from "../hooks/useSupabase";
 import { useUserOperations } from "../hooks/useUserOperations";
 import type { Database } from "../config/supabase";
+import type { Course } from "../services/courseService";
 import BlockchainModal from "./BlockchainModal";
 import EnrollmentModal from "./EnrollmentModal";
+import ManageCourseModal from "./ManageCourseModal";
+import CourseContentModal from "./CourseContentModal";
 
-type SupabaseUser = Database['public']['Tables']['users']['Row'];
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  teacher_id: string;
-  skill_category: string;
-  svc_value: number;
-  duration: number;
-  availability: string[];
-  learners: string[];
-  image_url?: string;
-}
+type SupabaseUser = Database["public"]["Tables"]["users"]["Row"];
 
 interface CourseCardProps {
   course: Course;
   showProgress?: boolean;
   completed?: boolean;
   isTeaching?: boolean;
+  onCourseUpdate?: (updatedCourse: Course) => void;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -34,10 +25,13 @@ const CourseCard: React.FC<CourseCardProps> = ({
   showProgress = false,
   completed = false,
   isTeaching = false,
+  onCourseUpdate,
 }) => {
   const [showTranslation, setShowTranslation] = useState(false);
   const [showBlockchain, setShowBlockchain] = useState(false);
   const [showEnrollment, setShowEnrollment] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [showContentModal, setShowContentModal] = useState(false);
 
   const { user, updateUser } = useAuth();
   const { enrollInCourse, completeCourse } = useCourseEnrollment();
@@ -144,7 +138,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <p className="text-sm text-gray-400">{course.skill_category}</p>
             </div>
             <div className="text-right ml-4">
-              <p className="text-accent-400 font-bold">{course.svc_value} SVC</p>
+              <p className="text-accent-400 font-bold">
+                {course.svc_value} SVC
+              </p>
             </div>
           </div>
 
@@ -173,7 +169,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {teacher && (
             <div className="flex items-center space-x-3 mb-4">
               <img
-                src={teacher.avatar_url || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150"}
+                src={
+                  teacher.avatar_url ||
+                  "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150"
+                }
                 alt={teacher.name}
                 className="w-8 h-8 rounded-full object-cover"
               />
@@ -210,7 +209,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
               </button>
             ) : showProgress ? (
               <>
-                <button className="flex-1 bg-accent-500 hover:bg-accent-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                <button
+                  onClick={() => setShowContentModal(true)}
+                  className="flex-1 bg-accent-500 hover:bg-accent-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
                   <Play size={18} />
                   <span>Continue</span>
                 </button>
@@ -222,7 +224,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 </button>
               </>
             ) : isTeaching ? (
-              <button className="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+              <button
+                onClick={() => setShowManageModal(true)}
+                className="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
                 <Users size={18} />
                 <span>Manage Course</span>
               </button>
@@ -250,6 +255,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
           course={course}
           onClose={() => setShowEnrollment(false)}
           onConfirm={handleEnrollConfirm}
+        />
+      )}
+
+      {/* Manage Course Modal */}
+      {showManageModal && (
+        <ManageCourseModal
+          course={course}
+          onClose={() => setShowManageModal(false)}
+          onUpdate={(updatedCourse) => {
+            if (onCourseUpdate) {
+              onCourseUpdate(updatedCourse);
+            }
+            setShowManageModal(false);
+          }}
+        />
+      )}
+
+      {/* Course Content Modal */}
+      {showContentModal && (
+        <CourseContentModal
+          course={course}
+          onClose={() => setShowContentModal(false)}
         />
       )}
     </>

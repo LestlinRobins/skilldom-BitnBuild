@@ -49,6 +49,22 @@ const MyCoursesPage: React.FC = () => {
 
   const userBadges = badges.slice(0, 3); // Mock earned badges
 
+  const handleCourseUpdate = async (updatedCourse: Course) => {
+    // Update the course in the local state
+    setUserTeachingCourses((prev) =>
+      prev.map((course) =>
+        course.id === updatedCourse.id ? updatedCourse : course
+      )
+    );
+
+    // Also update in allCourses if it exists there
+    setAllCourses((prev) =>
+      prev.map((course) =>
+        course.id === updatedCourse.id ? updatedCourse : course
+      )
+    );
+  };
+
   const iconMap = {
     Trophy,
     Flame,
@@ -203,7 +219,12 @@ const MyCoursesPage: React.FC = () => {
 
                 {teachingCourses.length > 0 ? (
                   teachingCourses.map((course: Course) => (
-                    <CourseCard key={course.id} course={course} isTeaching />
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      isTeaching
+                      onCourseUpdate={handleCourseUpdate}
+                    />
                   ))
                 ) : (
                   <div className="text-center py-12">
