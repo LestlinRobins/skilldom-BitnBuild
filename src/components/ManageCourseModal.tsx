@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Save, FileText, Video, Image, Trash2, Edit3 } from "lucide-react";
+import { X, Save, FileText, Video, Image, Trash2, Edit3, AlertTriangle } from "lucide-react";
 import { skillCategories } from "../data/mockData";
 import { useCourseOperations } from "../hooks/useCourseOperations";
 import { uploadCourseMedia, deleteFile } from "../services/supabaseService";
@@ -9,16 +9,20 @@ interface ManageCourseModalProps {
   course: Course;
   onClose: () => void;
   onUpdate?: (updatedCourse: Course) => void;
+  onDelete?: (courseId: string) => void;
 }
 
 const ManageCourseModal: React.FC<ManageCourseModalProps> = ({
   course,
   onClose,
   onUpdate,
+  onDelete,
 }) => {
-  const { updateCourse } = useCourseOperations();
+  const { updateCourse, deleteCourse } = useCourseOperations();
   const [isUpdating, setIsUpdating] = useState(false);
-  const [activeTab, setActiveTab] = useState<"details" | "media">("details");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [activeTab, setActiveTab] = useState<"details" | "media" | "danger">("details");
 
   const [formData, setFormData] = useState({
     title: course.title,
@@ -198,6 +202,44 @@ const ManageCourseModal: React.FC<ManageCourseModalProps> = ({
     }
   };
 
+  const handleDeleteCourse = async () => {
+    setIsDeleting(true);
+
+    try {
+      const result = await deleteCourse(course.id);
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      // Show success toast
+      const toast = document.createElement("div");
+      toast.className =
+        "fixed top-4 left-1/2 transform -translate-x-1/2 bg-success-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in";
+      toast.textContent = "Course deleted successfully!";
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+
+      if (onDelete) {
+        onDelete(course.id);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error("Failed to delete course:", error);
+      // Show error toast
+      const toast = document.createElement("div");
+      toast.className =
+        "fixed top-4 left-1/2 transform -translate-x-1/2 bg-error-500 text-white px-4 py-2 rounded-lg z-50 animate-fade-in";
+      toast.textContent = "Failed to delete course. Please try again.";
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmation("");
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-primary-800 rounded-xl w-full max-w-4xl p-6 animate-slide-up max-h-[90vh] overflow-y-auto">
@@ -236,6 +278,16 @@ const ManageCourseModal: React.FC<ManageCourseModalProps> = ({
             }`}
           >
             Media Management
+          </button>
+          <button
+            onClick={() => setActiveTab("danger")}
+            className={`pb-3 px-1 text-sm font-medium transition-colors ${
+              activeTab === "danger"
+                ? "text-red-400 border-b-2 border-red-400"
+                : "text-gray-400 hover:text-red-300"
+            }`}
+          >
+            Danger Zone
           </button>
         </div>
 
@@ -621,33 +673,96 @@ const ManageCourseModal: React.FC<ManageCourseModalProps> = ({
             </div>
           )}
 
-          {/* Submit Button */}
-          <div className="flex space-x-4 pt-6 border-t border-primary-600 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isUpdating}
-              className="flex-1 bg-accent-500 hover:bg-accent-600 disabled:bg-accent-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-            >
-              {isUpdating ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Updating...</span>
-                </>
-              ) : (
-                <>
-                  <Save size={18} />
-                  <span>Save Changes</span>
-                </>
-              )}
-            </button>
-          </div>
+          {/* Danger Zone Tab */}
+          {activeTab === "danger" && (
+            <div className="space-y-6">
+              <div className="border border-red-600 rounded-lg p-6 bg-red-950/50">
+                <div className="flex items-start space-x-3">
+                  <AlertTriangle className="text-red-400 mt-1" size={20} />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-red-400 mb-2">
+                      Delete Course
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      This action cannot be undone. This will permanently delete the course
+                      "{formData.title}" and all its associated media files.
+                    </p>
+                    <p className="text-sm text-gray-400 mb-4">
+                      Please type <span className="font-semibold text-white">"{formData.title}"</span> to confirm deletion.
+                    </p>
+                    <input
+                      type="text"
+                      value={deleteConfirmation}
+                      onChange={(e) => setDeleteConfirmation(e.target.value)}
+                      className="w-full bg-primary-700 border border-primary-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder={`Type "${formData.title}" here`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleDeleteCourse}
+                      disabled={deleteConfirmation !== formData.title || isDeleting}
+                      className="mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          <span>Deleting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 size={16} />
+                          <span>Delete Course Permanently</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button - Only show for details and media tabs */}
+          {activeTab !== "danger" && (
+            <div className="flex space-x-4 pt-6 border-t border-primary-600 mt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isUpdating}
+                className="flex-1 bg-accent-500 hover:bg-accent-600 disabled:bg-accent-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                {isUpdating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={18} />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Danger Zone Close Button */}
+          {activeTab === "danger" && (
+            <div className="flex justify-end pt-6 border-t border-primary-600 mt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="bg-gray-600 hover:bg-gray-500 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>
