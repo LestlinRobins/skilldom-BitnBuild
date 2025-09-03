@@ -103,19 +103,24 @@ export const deleteCourse = async (courseId: string): Promise<void> => {
     .eq("id", courseId)
     .single();
 
-  if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
-    throw new Error(`Failed to fetch course for deletion: ${fetchError.message}`);
+  if (fetchError && fetchError.code !== "PGRST116") {
+    // PGRST116 = not found
+    throw new Error(
+      `Failed to fetch course for deletion: ${fetchError.message}`
+    );
   }
 
   // Delete associated media files from storage if they exist
   if (course?.media_files && course.media_files.length > 0) {
     try {
       const { error: storageError } = await supabase.storage
-        .from('course-media')
+        .from("course-media")
         .remove(course.media_files);
 
       if (storageError) {
-        console.warn(`Warning: Failed to delete some media files: ${storageError.message}`);
+        console.warn(
+          `Warning: Failed to delete some media files: ${storageError.message}`
+        );
         // Don't throw here - we still want to delete the course record even if media cleanup fails
       }
     } catch (error) {

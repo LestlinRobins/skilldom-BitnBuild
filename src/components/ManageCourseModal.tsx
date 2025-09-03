@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { X, Save, FileText, Video, Image, Trash2, Edit3, AlertTriangle } from "lucide-react";
+import {
+  X,
+  Save,
+  FileText,
+  Video,
+  Image,
+  Trash2,
+  Edit3,
+  AlertTriangle,
+} from "lucide-react";
 import { skillCategories } from "../data/mockData";
 import { useCourseOperations } from "../hooks/useCourseOperations";
 import { uploadCourseMedia, deleteFile } from "../services/supabaseService";
@@ -22,7 +31,9 @@ const ManageCourseModal: React.FC<ManageCourseModalProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
-  const [activeTab, setActiveTab] = useState<"details" | "media" | "danger">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "media" | "danger">(
+    "details"
+  );
 
   const [formData, setFormData] = useState({
     title: course.title,
@@ -684,11 +695,16 @@ const ManageCourseModal: React.FC<ManageCourseModalProps> = ({
                       Delete Course
                     </h3>
                     <p className="text-gray-300 mb-4">
-                      This action cannot be undone. This will permanently delete the course
-                      "{formData.title}" and all its associated media files.
+                      This action cannot be undone. This will permanently delete
+                      the course "{formData.title}" and all its associated media
+                      files.
                     </p>
                     <p className="text-sm text-gray-400 mb-4">
-                      Please type <span className="font-semibold text-white">"{formData.title}"</span> to confirm deletion.
+                      Please type{" "}
+                      <span className="font-semibold text-white">
+                        "{formData.title}"
+                      </span>{" "}
+                      to confirm deletion.
                     </p>
                     <input
                       type="text"
@@ -700,7 +716,9 @@ const ManageCourseModal: React.FC<ManageCourseModalProps> = ({
                     <button
                       type="button"
                       onClick={handleDeleteCourse}
-                      disabled={deleteConfirmation !== formData.title || isDeleting}
+                      disabled={
+                        deleteConfirmation !== formData.title || isDeleting
+                      }
                       className="mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center space-x-2"
                     >
                       {isDeleting ? (
