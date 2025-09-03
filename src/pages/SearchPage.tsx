@@ -3,15 +3,17 @@ import { Search, Filter, Sparkles } from "lucide-react";
 import { skillCategories } from "../data/mockData";
 import CourseCard from "../components/CourseCard";
 import UserCard from "../components/UserCard";
+import { useAuth } from "../contexts/AuthContext";
 import { useCourseOperations } from "../hooks/useCourseOperations";
 import { useUserOperations } from "../hooks/useUserOperations";
 import type { Course } from "../services/courseService";
 import type { Database } from "../config/supabase";
 import { convertSupabaseUserToUser } from "../services/supabaseService";
 
-type SupabaseUser = Database['public']['Tables']['users']['Row'];
+type SupabaseUser = Database["public"]["Tables"]["users"]["Row"];
 
 const SearchPage: React.FC = () => {
+  const { user } = useAuth();
   const { getAllCourses, searchCourses } = useCourseOperations();
   const { searchForUsers } = useUserOperations();
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,23 +23,36 @@ const SearchPage: React.FC = () => {
   const [results, setResults] = useState<Course[]>([]);
   const [userResults, setUserResults] = useState<SupabaseUser[]>([]);
   const [allCourses, setAllCourses] = useState<Course[]>([]);
-  const [convertedUsers, setConvertedUsers] = useState<{ [key: string]: any }>({});
+  const [convertedUsers, setConvertedUsers] = useState<{ [key: string]: any }>(
+    {}
+  );
+
+  // Filter out courses the user is already enrolled in or has completed
+  const filterAvailableCourses = (courses: Course[]) => {
+    return courses.filter((course) => {
+      const isEnrolled = user?.ongoingCourses?.includes(course.id);
+      const isCompleted = user?.completedCourses?.includes(course.id);
+      const isOwnCourse = user?.id && course.teacher_id === user.id;
+
+      // Exclude enrolled, completed, and own courses
+      return !isEnrolled && !isCompleted && !isOwnCourse;
+    });
+  };
 
   // Load initial data on component mount
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [courses] = await Promise.all([
-          getAllCourses()
-        ]);
+        const [courses] = await Promise.all([getAllCourses()]);
         setAllCourses(courses);
-        setResults(activeTab === "courses" ? courses : []);
+        const filteredCourses = filterAvailableCourses(courses);
+        setResults(activeTab === "courses" ? filteredCourses : []);
       } catch (error) {
         console.error("Failed to load initial data:", error);
       }
     };
     loadInitialData();
-  }, [getAllCourses, activeTab]);
+  }, [getAllCourses, activeTab, user?.ongoingCourses, user?.completedCourses]);
 
   // Handle search
   useEffect(() => {
@@ -48,7 +63,8 @@ const SearchPage: React.FC = () => {
         try {
           if (activeTab === "courses") {
             const courseResults = await searchCourses(searchQuery);
-            setResults(courseResults);
+            const filteredResults = filterAvailableCourses(courseResults);
+            setResults(filteredResults);
             setUserResults([]);
           } else {
             const userResults = await searchForUsers(searchQuery);
@@ -66,7 +82,8 @@ const SearchPage: React.FC = () => {
 
       return () => clearTimeout(searchTimeout);
     } else {
-      setResults(activeTab === "courses" ? allCourses : []);
+      const filteredCourses = filterAvailableCourses(allCourses);
+      setResults(activeTab === "courses" ? filteredCourses : []);
       setUserResults([]);
       setIsSearching(false);
     }
@@ -74,21 +91,24 @@ const SearchPage: React.FC = () => {
 
   // Handle tab changes
   useEffect(() => {
+    const filteredCourses = filterAvailableCourses(allCourses);
     if (activeTab === "courses") {
-      setResults(allCourses);
+      setResults(filteredCourses);
       setUserResults([]);
     } else {
       setResults([]);
       setUserResults([]);
     }
-  }, [activeTab, allCourses]);
+  }, [activeTab, allCourses, user?.ongoingCourses, user?.completedCourses]);
 
   // Convert users when userResults change
   useEffect(() => {
     const convertUsers = async () => {
       setIsSearching(true);
       try {
-        const promises = userResults.map(user => convertSupabaseUserToUser(user));
+        const promises = userResults.map((user) =>
+          convertSupabaseUserToUser(user)
+        );
         const convertedResults = await Promise.all(promises);
         const converted: { [key: string]: any } = {};
         userResults.forEach((user, index) => {
@@ -96,7 +116,7 @@ const SearchPage: React.FC = () => {
         });
         setConvertedUsers(converted);
       } catch (error) {
-        console.error('Error converting users:', error);
+        console.error("Error converting users:", error);
         setConvertedUsers({});
       } finally {
         setIsSearching(false);
@@ -112,7 +132,11 @@ const SearchPage: React.FC = () => {
   }, [userResults]);
 
   // Show loading state while converting users
-  if (userResults.length > 0 && Object.keys(convertedUsers).length === 0 && isSearching) {
+  if (
+    userResults.length > 0 &&
+    Object.keys(convertedUsers).length === 0 &&
+    isSearching
+  ) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-4">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent-400"></div>
@@ -219,20 +243,20 @@ const SearchPage: React.FC = () => {
               {filteredResults.length} {activeTab} found
             </p>
             <div className="grid grid-cols-1 gap-4 animate-fade-in">
-              {activeTab === "courses" ? (
-                // Display courses
-                results.map(course => (
-                  <CourseCard key={course.id} course={course} />
-                ))
-              ) : (
-                // Display users
-                userResults.map(user => {
-                  const convertedUser = convertedUsers[user.id];
-                  return convertedUser ? (
-                    <UserCard key={user.id} user={convertedUser} />
-                  ) : null;
-                }).filter(Boolean)
-              )}
+              {activeTab === "courses"
+                ? // Display courses
+                  results.map((course) => (
+                    <CourseCard key={course.id} course={course} />
+                  ))
+                : // Display users
+                  userResults
+                    .map((user) => {
+                      const convertedUser = convertedUsers[user.id];
+                      return convertedUser ? (
+                        <UserCard key={user.id} user={convertedUser} />
+                      ) : null;
+                    })
+                    .filter(Boolean)}
             </div>
           </div>
         )}

@@ -26,10 +26,20 @@ const HomePage: React.FC = () => {
       }
     };
     loadCourses();
-  }, [getAllCoursesWithMockData]);
+  }, [getAllCoursesWithMockData, user?.ongoingCourses, user?.completedCourses]);
 
-  const recommendedCourses = allCourses.slice(0, 3);
-  const trendingCourses = allCourses.slice(2, 5);
+  // Filter out courses the user is already enrolled in or has completed
+  const availableCourses = allCourses.filter((course) => {
+    const isEnrolled = user?.ongoingCourses?.includes(course.id);
+    const isCompleted = user?.completedCourses?.includes(course.id);
+    const isOwnCourse = user?.id && course.teacher_id === user.id;
+
+    // Exclude enrolled, completed, and own courses
+    return !isEnrolled && !isCompleted && !isOwnCourse;
+  });
+
+  const recommendedCourses = availableCourses.slice(0, 3);
+  const trendingCourses = availableCourses.slice(3, 6); // Start from index 3 to avoid overlap
 
   return (
     <div className="min-h-screen bg-primary-700 text-white">
@@ -56,7 +66,9 @@ const HomePage: React.FC = () => {
           <div className="flex-1">
             <p className="text-sm text-gray-300">AI Assistant</p>
             <p className="text-white">
-              "Try 'Advanced React Hooks' - perfect for your skill level!"
+              {availableCourses.length > 0
+                ? "Try exploring new skills - perfect for your learning journey!"
+                : "Great job! You've explored many courses. Check 'My Courses' to continue learning!"}
             </p>
           </div>
         </div>
@@ -71,19 +83,32 @@ const HomePage: React.FC = () => {
             <h2 className="text-xl font-bold">Recommended for You</h2>
           </div>
           <div className="flex space-x-4 overflow-x-auto pb-4">
-            {isLoading
-              ? // Loading skeleton
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex-shrink-0 w-80 h-64 bg-primary-600 rounded-xl animate-pulse"
-                  ></div>
-                ))
-              : recommendedCourses.map((course) => (
-                  <div key={course.id} className="flex-shrink-0 w-80">
-                    <CourseCard course={course} />
-                  </div>
-                ))}
+            {isLoading ? (
+              // Loading skeleton
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-80 h-64 bg-primary-600 rounded-xl animate-pulse"
+                ></div>
+              ))
+            ) : recommendedCourses.length > 0 ? (
+              recommendedCourses.map((course) => (
+                <div key={course.id} className="flex-shrink-0 w-80">
+                  <CourseCard course={course} />
+                </div>
+              ))
+            ) : (
+              <div className="flex-shrink-0 w-full text-center py-8">
+                <Sparkles className="text-gray-500 mx-auto mb-4" size={48} />
+                <p className="text-gray-400">
+                  No new courses to recommend right now
+                </p>
+                <p className="text-gray-500 text-sm mt-1">
+                  You've explored all available courses! Check back later for
+                  new content.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -94,19 +119,29 @@ const HomePage: React.FC = () => {
             <h2 className="text-xl font-bold">Trending Skills</h2>
           </div>
           <div className="flex space-x-4 overflow-x-auto pb-4">
-            {isLoading
-              ? // Loading skeleton
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex-shrink-0 w-80 h-64 bg-primary-600 rounded-xl animate-pulse"
-                  ></div>
-                ))
-              : trendingCourses.map((course) => (
-                  <div key={course.id} className="flex-shrink-0 w-80">
-                    <CourseCard course={course} />
-                  </div>
-                ))}
+            {isLoading ? (
+              // Loading skeleton
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-80 h-64 bg-primary-600 rounded-xl animate-pulse"
+                ></div>
+              ))
+            ) : trendingCourses.length > 0 ? (
+              trendingCourses.map((course) => (
+                <div key={course.id} className="flex-shrink-0 w-80">
+                  <CourseCard course={course} />
+                </div>
+              ))
+            ) : (
+              <div className="flex-shrink-0 w-full text-center py-8">
+                <TrendingUp className="text-gray-500 mx-auto mb-4" size={48} />
+                <p className="text-gray-400">No trending courses available</p>
+                <p className="text-gray-500 text-sm mt-1">
+                  All trending courses are already in your library!
+                </p>
+              </div>
+            )}
           </div>
         </section>
       </div>
