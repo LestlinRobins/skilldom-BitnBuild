@@ -12,22 +12,39 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-primary-800 border-t border-primary-600 px-4 py-2">
-      <div className="flex justify-around items-center max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-primary-800/80 backdrop-blur-lg border-t border-primary-600/70 z-40">
+      <div className="flex justify-around items-center max-w-md mx-auto p-1">
         {navItems.map(({ path, icon: Icon, label }) => (
           <NavLink
             key={path}
             to={path}
             className={({ isActive }) =>
-              `flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 ${
-                isActive
-                  ? "text-accent-400 bg-accent-400/10"
-                  : "text-gray-400 hover:text-accent-400 hover:bg-accent-400/5"
-              }`
+              `flex flex-col items-center justify-center w-16 h-14 rounded-lg transition-all duration-300 transform
+               ${
+                 isActive
+                   ? "text-accent-300"
+                   : "text-gray-400 hover:text-white hover:-translate-y-1"
+               }`
             }
           >
-            <Icon size={20} />
-            <span className="text-xs mt-1 font-medium">{label}</span>
+            {({ isActive }) => (
+              <>
+                <Icon
+                  size={24}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  className={`transition-all duration-300 ${
+                    isActive ? "-translate-y-1" : ""
+                  }`}
+                />
+                <span
+                  className={`text-xs mt-1 font-medium transition-all duration-300 ${
+                    isActive ? "font-bold" : ""
+                  }`}
+                >
+                  {label}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
