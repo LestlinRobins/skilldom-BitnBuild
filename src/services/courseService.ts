@@ -1,6 +1,44 @@
 import { supabase } from "../config/supabase";
 import { courses as mockCourses } from "../data/mockData";
 
+// Upload media file to Supabase storage
+export const uploadCourseMedia = async (file: File): Promise<string> => {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+  const filePath = `course-media/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from("course-uploads")
+    .upload(filePath, file);
+
+  if (error) {
+    throw new Error(`Failed to upload file: ${error.message}`);
+  }
+
+  // Get the public URL
+  const { data: publicData } = supabase.storage
+    .from("course-uploads")
+    .getPublicUrl(filePath);
+
+  return publicData.publicUrl;
+};
+
+// Delete file from Supabase storage
+export const deleteFile = async (filePath: string): Promise<void> => {
+  // Extract the path from the full URL if needed
+  const pathParts = filePath.split("/course-uploads/");
+  const actualPath =
+    pathParts.length > 1 ? `course-uploads/${pathParts[1]}` : filePath;
+
+  const { error } = await supabase.storage
+    .from("course-uploads")
+    .remove([actualPath]);
+
+  if (error) {
+    throw new Error(`Failed to delete file: ${error.message}`);
+  }
+};
+
 // Transform mock course to match our Course interface
 const transformMockCourse = (mockCourse: any): Course => ({
   id: mockCourse.id,
