@@ -30,15 +30,15 @@ const BottomNav: React.FC = () => {
             {({ isActive }) => (
               <>
                 <Icon
-                  size={24}
+                  size={22} // Icon size reduced
                   strokeWidth={isActive ? 2.5 : 2}
                   className={`transition-all duration-300 ${
                     isActive ? "-translate-y-1" : ""
                   }`}
                 />
                 <span
-                  className={`text-xs mt-1 font-medium transition-all duration-300 ${
-                    isActive ? "font-bold" : ""
+                  className={`text-xs mt-1.5 transition-all duration-300 ${
+                    isActive ? "font-semibold" : "font-medium" // Font weight adjusted
                   }`}
                 >
                   {label}

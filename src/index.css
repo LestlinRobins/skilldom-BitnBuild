@@ -1,6 +1,17 @@
+/* Import Albert Sans from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Apply Albert Sans as the default font for the entire application */
+  html {
+    font-family: 'Albert Sans', sans-serif;
+  }
+}
+
 
 /* Apply a global dark theme and font smoothing */
 body {
