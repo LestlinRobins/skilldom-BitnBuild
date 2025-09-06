@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useUserOperations } from "../hooks/useUserOperations";
+import { getUserReviews } from "../services/supabaseService";
 import { Star, MessageSquare, ArrowLeft, Camera } from "lucide-react";
 import MessageModal from "../components/MessageModal";
 import VerificationBadge from "../components/VerificationBadge";
@@ -26,6 +27,16 @@ const UserProfilePage: React.FC = () => {
         const supabaseUser = await getUser(userId);
 
         if (supabaseUser) {
+          // Fetch user reviews
+          const reviews = await getUserReviews(userId);
+
+          // Calculate average rating from reviews
+          const averageRating =
+            reviews.length > 0
+              ? reviews.reduce((sum, review) => sum + review.rating, 0) /
+                reviews.length
+              : null;
+
           // Transform Supabase user to match our interface
           const transformedUser = {
             id: supabaseUser.id,
@@ -35,8 +46,8 @@ const UserProfilePage: React.FC = () => {
               "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
             bio: supabaseUser.bio || "No bio available",
             skills: supabaseUser.skills || [],
-            rating: 4.5, // Mock rating for now
-            reviews: [], // Mock reviews for now
+            rating: averageRating ? parseFloat(averageRating.toFixed(1)) : null,
+            reviews: reviews,
             skillCoins: supabaseUser.skill_coins || 0,
             verification_status: supabaseUser.verification_status,
             professionalLinks: {
@@ -139,7 +150,9 @@ const UserProfilePage: React.FC = () => {
             </div>
             <div className="flex items-center space-x-1 mb-2">
               <Star className="text-yellow-400 fill-current" size={16} />
-              <span className="text-sm font-medium">{profileUser.rating}</span>
+              <span className="text-sm font-medium">
+                {profileUser.rating ? profileUser.rating : "No rating yet"}
+              </span>
               <span className="text-sm text-gray-400">
                 ({profileUser.reviews?.length || 0} reviews)
               </span>
@@ -273,7 +286,9 @@ const UserProfilePage: React.FC = () => {
                   ))}
                 </div>
                 <p className="text-gray-300 text-sm mb-2">"{review.comment}"</p>
-                <p className="text-gray-400 text-xs">- {review.reviewer}</p>
+                <p className="text-gray-400 text-xs">
+                  - {review.reviewer?.name || review.reviewer}
+                </p>
               </div>
             ))}
             {(!profileUser.reviews || profileUser.reviews.length === 0) && (
