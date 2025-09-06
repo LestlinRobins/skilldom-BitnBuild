@@ -99,3 +99,15 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Modal specific styles to ensure it appears on top */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 999999 !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+}

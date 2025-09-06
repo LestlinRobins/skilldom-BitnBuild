@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Users,
@@ -10,7 +11,8 @@ import {
   FileText,
 } from "lucide-react";
 import { Project } from "../services/projectService";
-import { users } from "../data/mockData";
+import { User } from "../services/authService";
+import { getUserProfile } from "../services/supabaseService";
 
 interface ProjectDetailsModalProps {
   project: Project;
@@ -21,13 +23,78 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
   project,
   onClose,
 }) => {
-  // Get member details from users data
-  const members = users.filter((u: any) =>
-    project.current_members.includes(u.id)
-  );
+  const [members, setMembers] = useState<User[]>([]);
+  const [creator, setCreator] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Get creator details
-  const creator = users.find((u: any) => u.id === project.creator_id);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch creator data
+        if (project.creator_id) {
+          const creatorData = await getUserProfile(project.creator_id);
+          if (creatorData) {
+            setCreator({
+              id: creatorData.id,
+              name: creatorData.name || "Unknown User",
+              email: creatorData.email,
+              avatarUrl:
+                creatorData.avatar_url || "https://via.placeholder.com/40",
+              skills: creatorData.skills || [],
+              bio: creatorData.bio || "",
+              rating: 0,
+              reviews: [],
+              skillCoins: 0,
+              ongoingCourses: [],
+              completedCourses: [],
+              collaborations: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          }
+        }
+
+        // Fetch member data
+        const memberPromises = project.current_members.map(async (memberId) => {
+          const userData = await getUserProfile(memberId);
+          if (userData) {
+            return {
+              id: userData.id,
+              name: userData.name || "Unknown User",
+              email: userData.email,
+              avatarUrl:
+                userData.avatar_url || "https://via.placeholder.com/40",
+              skills: userData.skills || [],
+              bio: userData.bio || "",
+              rating: 0,
+              reviews: [],
+              skillCoins: 0,
+              ongoingCourses: [],
+              completedCourses: [],
+              collaborations: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+          }
+          return null;
+        });
+
+        const memberResults = await Promise.all(memberPromises);
+        const validMembers = memberResults.filter(
+          (member) => member !== null
+        ) as User[];
+        setMembers(validMembers);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [project.creator_id, project.current_members]);
 
   const statusConfig = {
     open: { color: "text-blue-400", bg: "bg-blue-500/20", label: "Open" },
@@ -58,11 +125,11 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     advanced: { color: "text-red-400", bg: "bg-red-500/20", label: "Advanced" },
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-primary-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+  const modalContent = (
+    <div className="modal-overlay fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4 backdrop-blur-sm">
+      <div className="bg-primary-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-primary-600 relative z-[100000]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-primary-600 sticky top-0 bg-primary-800 z-10">
+        <div className="flex items-center justify-between p-6 border-b border-primary-600 sticky top-0 bg-primary-800 z-[100001] backdrop-blur-md shadow-md">
           <h2 className="text-2xl font-bold text-white">{project.title}</h2>
           <button
             onClick={onClose}
@@ -211,51 +278,67 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
             <h3 className="text-lg font-semibold text-white mb-3">
               Team Members
             </h3>
-            <div className="space-y-3">
-              {/* Creator */}
-              {creator && (
-                <div className="flex items-center space-x-3 p-3 bg-primary-700 rounded-lg">
-                  <img
-                    src={creator.avatarUrl}
-                    alt={creator.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium text-white">
-                        {creator.name}
-                      </span>
-                      <span className="text-xs bg-accent-500 text-white px-2 py-1 rounded-full">
-                        Creator
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-sm">{creator.bio}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Other Members */}
-              {members
-                .filter((member) => member.id !== project.creator_id)
-                .map((member: any) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center space-x-3 p-3 bg-primary-700 rounded-lg"
-                  >
+            {loading ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent-400"></div>
+                <span className="ml-2 text-gray-400">
+                  Loading team members...
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Creator */}
+                {creator && (
+                  <div className="flex items-center space-x-3 p-3 bg-primary-700 rounded-lg">
                     <img
-                      src={member.avatarUrl}
-                      alt={member.name}
+                      src={creator.avatarUrl}
+                      alt={creator.name}
                       className="w-10 h-10 rounded-full object-cover"
                     />
                     <div className="flex-1">
-                      <span className="font-medium text-white">
-                        {member.name}
-                      </span>
-                      <p className="text-gray-400 text-sm">{member.bio}</p>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-white">
+                          {creator.name}
+                        </span>
+                        <span className="text-xs bg-accent-500 text-white px-2 py-1 rounded-full">
+                          Creator
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm">{creator.bio}</p>
                     </div>
                   </div>
-                ))}
-            </div>
+                )}
+
+                {/* Other Members */}
+                {members
+                  .filter((member) => member.id !== project.creator_id)
+                  .map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center space-x-3 p-3 bg-primary-700 rounded-lg"
+                    >
+                      <img
+                        src={member.avatarUrl}
+                        alt={member.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div className="flex-1">
+                        <span className="font-medium text-white">
+                          {member.name}
+                        </span>
+                        <p className="text-gray-400 text-sm">{member.bio}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                {/* Show message if no members yet */}
+                {!loading && members.length === 0 && (
+                  <div className="text-center p-4 text-gray-400">
+                    No team members yet. Be the first to join!
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Project Links */}
@@ -341,6 +424,8 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default ProjectDetailsModal;
