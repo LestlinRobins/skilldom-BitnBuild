@@ -143,7 +143,9 @@ const ProfilePage: React.FC = () => {
                   ))}
                 </div>
                 <p className="text-gray-300 text-sm mb-2">"{review.comment}"</p>
-                <p className="text-gray-400 text-xs">- {review.reviewer}</p>
+                <p className="text-gray-400 text-xs">
+                  - {review.reviewer?.name || review.reviewer}
+                </p>
               </div>
             ))}
           </div>

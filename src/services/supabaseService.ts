@@ -379,3 +379,131 @@ export const uploadCourseMedia = async (
   const path = `courses/${courseId}/${mediaType}s`;
   return uploadFile(file, "course-media", path);
 };
+
+// Review system functions
+export const submitTeacherReview = async (
+  reviewerId: string,
+  teacherId: string,
+  courseId: string,
+  rating: number,
+  comment: string = ""
+): Promise<void> => {
+  // Check if review already exists
+  const { data: existingReview } = await supabase
+    .from("user_reviews")
+    .select("id")
+    .eq("reviewer_id", reviewerId)
+    .eq("user_id", teacherId)
+    .eq("course_id", courseId)
+    .single();
+
+  if (existingReview) {
+    // Update existing review
+    const { error } = await supabase
+      .from("user_reviews")
+      .update({
+        rating,
+        comment,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existingReview.id);
+
+    if (error) {
+      throw new Error(`Failed to update review: ${error.message}`);
+    }
+  } else {
+    // Create new review
+    const { error } = await supabase.from("user_reviews").insert({
+      reviewer_id: reviewerId,
+      user_id: teacherId,
+      course_id: courseId,
+      rating,
+      comment,
+    });
+
+    if (error) {
+      throw new Error(`Failed to submit review: ${error.message}`);
+    }
+  }
+
+  // Update teacher's overall rating
+  await updateTeacherRating(teacherId);
+};
+
+export const getTeacherReviews = async (teacherId: string) => {
+  const { data, error } = await supabase
+    .from("user_reviews")
+    .select(
+      `
+      id,
+      rating,
+      comment,
+      created_at,
+      reviewer:reviewer_id (
+        name,
+        avatar_url
+      )
+    `
+    )
+    .eq("user_id", teacherId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to get reviews: ${error.message}`);
+  }
+
+  return data || [];
+};
+
+export const getUserReviewForCourse = async (
+  reviewerId: string,
+  teacherId: string,
+  courseId: string
+) => {
+  const { data, error } = await supabase
+    .from("user_reviews")
+    .select("rating, comment")
+    .eq("reviewer_id", reviewerId)
+    .eq("user_id", teacherId)
+    .eq("course_id", courseId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    throw new Error(`Failed to get user review: ${error.message}`);
+  }
+
+  return data;
+};
+
+const updateTeacherRating = async (teacherId: string): Promise<void> => {
+  // Get all reviews for this teacher
+  const { data: reviews, error: reviewsError } = await supabase
+    .from("user_reviews")
+    .select("rating")
+    .eq("user_id", teacherId);
+
+  if (reviewsError) {
+    throw new Error(`Failed to get teacher reviews: ${reviewsError.message}`);
+  }
+
+  if (!reviews || reviews.length === 0) {
+    return; // No reviews yet
+  }
+
+  // Calculate average rating
+  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const averageRating = Math.round((totalRating / reviews.length) * 10) / 10; // Round to 1 decimal
+
+  // Update teacher's rating
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({
+      rating: averageRating,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", teacherId);
+
+  if (updateError) {
+    throw new Error(`Failed to update teacher rating: ${updateError.message}`);
+  }
+};

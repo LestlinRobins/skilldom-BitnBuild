@@ -3,12 +3,17 @@ import { Clock, Users, Star, Play, CheckCircle, Languages } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useCourseEnrollment } from "../hooks/useSupabase";
 import { useUserOperations } from "../hooks/useUserOperations";
+import {
+  submitTeacherReview,
+  getUserReviewForCourse,
+} from "../services/supabaseService";
 import type { Database } from "../config/supabase";
 import type { Course } from "../services/courseService";
 import BlockchainModal from "./BlockchainModal";
 import EnrollmentModal from "./EnrollmentModal";
 import ManageCourseModal from "./ManageCourseModal";
 import CourseContentModal from "./CourseContentModal";
+import ReviewModal from "./ReviewModal";
 
 type SupabaseUser = Database["public"]["Tables"]["users"]["Row"];
 
@@ -32,6 +37,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const [showEnrollment, setShowEnrollment] = useState(false);
   const [showManageModal, setShowManageModal] = useState(false);
   const [showContentModal, setShowContentModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [existingReview, setExistingReview] = useState<{
+    rating: number;
+    comment: string;
+  } | null>(null);
 
   const { user, updateUser } = useAuth();
   const { enrollInCourse, completeCourse } = useCourseEnrollment();
@@ -47,8 +57,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
         setTeacher(teacherData);
       }
     };
+
+    const loadExistingReview = async () => {
+      if (completed && user?.id && course.teacher_id) {
+        try {
+          const review = await getUserReviewForCourse(
+            user.id,
+            course.teacher_id,
+            course.id
+          );
+          if (review) {
+            setExistingReview(review);
+          }
+        } catch (error) {
+          // No existing review, which is fine
+          console.log("No existing review found");
+        }
+      }
+    };
+
     loadTeacher();
-  }, [course.teacher_id, getUser]);
+    loadExistingReview();
+  }, [course.teacher_id, course.id, completed, user?.id, getUser]);
 
   const handleCompleteSession = async () => {
     if (!user) return;
@@ -87,6 +117,35 @@ const CourseCard: React.FC<CourseCardProps> = ({
     } catch (error) {
       console.error("Enrollment failed:", error);
       // Error handling is done in the hook
+    }
+  };
+
+  const handleReviewSubmit = async (
+    courseId: string,
+    teacherId: string,
+    rating: number,
+    comment: string
+  ) => {
+    if (!user) return;
+
+    try {
+      await submitTeacherReview(user.id, teacherId, courseId, rating, comment);
+
+      // Update existing review state
+      setExistingReview({ rating, comment });
+
+      // Show success notification
+      const toast = document.createElement("div");
+      toast.className =
+        "fixed top-4 left-1/2 transform -translate-x-1/2 bg-success-500 text-white px-6 py-3 rounded-lg z-50 animate-fade-in";
+      toast.textContent = existingReview
+        ? "Review updated successfully!"
+        : "Thank you for your review!";
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      throw error;
     }
   };
 
@@ -179,9 +238,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <div>
                 <p className="text-sm font-medium text-white">{teacher.name}</p>
                 <div className="flex items-center space-x-1">
-                  <Star className="text-yellow-400 fill-current" size={12} />
+                  <Star className="text-warning-400 fill-current" size={12} />
                   <span className="text-xs text-gray-400">
-                    {teacher.rating || 0}
+                    {teacher.rating
+                      ? teacher.rating.toFixed(1)
+                      : "No ratings yet"}
                   </span>
                 </div>
               </div>
@@ -203,10 +264,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {/* Action Button */}
           <div className="flex space-x-2">
             {completed ? (
-              <button className="flex-1 bg-success-500 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
-                <CheckCircle size={18} />
-                <span>Completed</span>
-              </button>
+              <>
+                <button className="flex-1 bg-success-500 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
+                  <CheckCircle size={18} />
+                  <span>Completed</span>
+                </button>
+                <button
+                  onClick={() => setShowReviewModal(true)}
+                  className="bg-warning-500 hover:bg-warning-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Star size={18} />
+                  <span>{existingReview ? "Edit Review" : "Review"}</span>
+                </button>
+              </>
             ) : showProgress ? (
               <>
                 <button
@@ -277,6 +347,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
         <CourseContentModal
           course={course}
           onClose={() => setShowContentModal(false)}
+        />
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <ReviewModal
+          course={course}
+          teacherName={teacher?.name}
+          onClose={() => setShowReviewModal(false)}
+          onReviewSubmit={handleReviewSubmit}
+          existingReview={existingReview}
         />
       )}
     </>
