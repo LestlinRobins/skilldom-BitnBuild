@@ -507,3 +507,19 @@ const updateTeacherRating = async (teacherId: string): Promise<void> => {
     throw new Error(`Failed to update teacher rating: ${updateError.message}`);
   }
 };
+
+// Get enrollment count for a course
+export const getCourseEnrollmentCount = async (
+  courseId: string
+): Promise<number> => {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .contains("ongoing_courses", [courseId]);
+
+  if (error) {
+    throw new Error(`Failed to get enrollment count: ${error.message}`);
+  }
+
+  return data?.length || 0;
+};

@@ -6,6 +6,7 @@ import { useUserOperations } from "../hooks/useUserOperations";
 import {
   submitTeacherReview,
   getUserReviewForCourse,
+  getCourseEnrollmentCount,
 } from "../services/supabaseService";
 import type { Database } from "../config/supabase";
 import type { Course } from "../services/courseService";
@@ -42,6 +43,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
     rating: number;
     comment: string;
   } | null>(null);
+  const [enrollmentCount, setEnrollmentCount] = useState<number>(
+    course.learners.length
+  ); // Default to course.learners.length
 
   const { user, updateUser } = useAuth();
   const { enrollInCourse, completeCourse } = useCourseEnrollment();
@@ -76,8 +80,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
       }
     };
 
+    const loadEnrollmentCount = async () => {
+      try {
+        const count = await getCourseEnrollmentCount(course.id);
+        setEnrollmentCount(count);
+      } catch (error) {
+        console.error("Failed to load enrollment count:", error);
+        // Keep the default value from course.learners.length
+      }
+    };
+
     loadTeacher();
     loadExistingReview();
+    loadEnrollmentCount();
   }, [course.teacher_id, course.id, completed, user?.id, getUser]);
 
   const handleCompleteSession = async () => {
@@ -257,7 +272,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             </div>
             <div className="flex items-center space-x-1">
               <Users size={14} />
-              <span>{course.learners.length} learners</span>
+              <span>{enrollmentCount} learners</span>
             </div>
           </div>
 
