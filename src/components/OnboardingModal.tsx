@@ -16,7 +16,6 @@ import {
   verifySkillsDemo,
   VerificationResult,
 } from "../services/geminiService";
-import LoadingSpinner from "./LoadingSpinner";
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -153,7 +152,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
         linkedin_url: data.linkedinUrl || null,
         github_url: data.githubUrl || null,
         portfolio_url: data.portfolioUrl || null,
-        other_links: data.otherLinks.length > 0 ? data.otherLinks : null,
+        other_links: data.otherLinks.length > 0 ? data.otherLinks : undefined,
         skills_verified: verificationResult.isVerified,
         verification_status: verificationResult.isVerified
           ? "verified"
@@ -189,37 +188,37 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-black border border-primary-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b border-primary-800">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-white">
               Complete Your Profile
             </h2>
-            <p className="text-gray-600 mt-1">
+            <p className="text-primary-300 mt-1">
               Help us verify your skills and showcase your expertise
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-2"
+            className="text-primary-400 hover:text-primary-200 p-2"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Progress Indicator */}
-        <div className="px-6 py-4 border-b">
+        <div className="px-6 py-4 border-b border-primary-800">
           <div className="flex items-center justify-between">
             {[1, 2, 3, 4].map((stepNumber) => (
               <div key={stepNumber} className="flex items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     stepNumber < step
-                      ? "bg-blue-600 text-white"
+                      ? "bg-accent-600 text-white"
                       : stepNumber === step
-                      ? "bg-blue-100 text-blue-600 border-2 border-blue-600"
-                      : "bg-gray-100 text-gray-400"
+                      ? "bg-primary-900 text-accent-500 border-2 border-accent-600"
+                      : "bg-primary-800 text-primary-400"
                   }`}
                 >
                   {stepNumber < step ? (
@@ -231,14 +230,14 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 {stepNumber < 4 && (
                   <div
                     className={`w-16 h-0.5 mx-2 ${
-                      stepNumber < step ? "bg-blue-600" : "bg-gray-200"
+                      stepNumber < step ? "bg-accent-600" : "bg-primary-700"
                     }`}
                   />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-gray-500 mt-2">
+          <div className="flex justify-between text-xs text-primary-400 mt-2">
             <span>Skills</span>
             <span>Links</span>
             <span>Bio</span>
@@ -252,10 +251,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2">
+                <h3 className="text-lg font-semibold mb-2 text-white">
                   What are your skills?
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-primary-300 mb-4">
                   Add your technical skills, programming languages, frameworks,
                   and tools.
                 </p>
@@ -266,12 +265,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
                     placeholder="Enter a skill (e.g., React, Python, Node.js)"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 bg-primary-900 border border-primary-700 rounded-md text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                     onKeyDown={(e) => e.key === "Enter" && addSkill()}
                   />
                   <button
                     onClick={addSkill}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                    className="px-4 py-2 bg-accent-600 text-white rounded-md hover:bg-accent-700 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add
@@ -282,12 +281,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   {data.skills.map((skill, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                      className="flex items-center gap-2 bg-accent-600 text-white px-3 py-1 rounded-full text-sm"
                     >
                       {skill}
                       <button
                         onClick={() => removeSkill(index)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-accent-200 hover:text-white"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -296,7 +295,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 </div>
 
                 {data.skills.length === 0 && (
-                  <p className="text-gray-500 text-sm">
+                  <p className="text-primary-400 text-sm">
                     No skills added yet. Add at least 3-5 skills to get better
                     verification results.
                   </p>
@@ -309,17 +308,17 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2">
+                <h3 className="text-lg font-semibold mb-2 text-white">
                   Professional Links
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-primary-300 mb-4">
                   Add your professional profiles to help verify your skills.
                 </p>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                      <Linkedin className="w-4 h-4 text-blue-600" />
+                    <label className="flex items-center gap-2 text-sm font-medium text-primary-300 mb-2">
+                      <Linkedin className="w-4 h-4 text-accent-500" />
                       LinkedIn Profile
                     </label>
                     <input
@@ -332,13 +331,13 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         }))
                       }
                       placeholder="https://linkedin.com/in/yourname"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-primary-900 border border-primary-700 rounded-md text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                      <Github className="w-4 h-4" />
+                    <label className="flex items-center gap-2 text-sm font-medium text-primary-300 mb-2">
+                      <Github className="w-4 h-4 text-primary-300" />
                       GitHub Profile
                     </label>
                     <input
@@ -351,13 +350,13 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         }))
                       }
                       placeholder="https://github.com/yourusername"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-primary-900 border border-primary-700 rounded-md text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                      <Globe className="w-4 h-4 text-green-600" />
+                    <label className="flex items-center gap-2 text-sm font-medium text-primary-300 mb-2">
+                      <Globe className="w-4 h-4 text-success-500" />
                       Portfolio Website
                     </label>
                     <input
@@ -370,12 +369,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         }))
                       }
                       placeholder="https://yourportfolio.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-primary-900 border border-primary-700 rounded-md text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    <label className="text-sm font-medium text-primary-300 mb-2 block">
                       Other Links
                     </label>
                     <div className="flex gap-2 mb-2">
@@ -384,12 +383,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         value={newLink}
                         onChange={(e) => setNewLink(e.target.value)}
                         placeholder="https://your-other-profile.com"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 bg-primary-900 border border-primary-700 rounded-md text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                         onKeyDown={(e) => e.key === "Enter" && addOtherLink()}
                       />
                       <button
                         onClick={addOtherLink}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                        className="px-4 py-2 bg-primary-700 text-white rounded-md hover:bg-primary-600"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -398,12 +397,14 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     {data.otherLinks.map((link, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md text-sm mb-2"
+                        className="flex items-center gap-2 bg-primary-900 border border-primary-700 px-3 py-2 rounded-md text-sm mb-2"
                       >
-                        <span className="flex-1 truncate">{link}</span>
+                        <span className="flex-1 truncate text-white">
+                          {link}
+                        </span>
                         <button
                           onClick={() => removeOtherLink(index)}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-error-400 hover:text-error-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -419,10 +420,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2">
+                <h3 className="text-lg font-semibold mb-2 text-white">
                   Tell us about yourself
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-primary-300 mb-4">
                   Write a brief bio highlighting your experience and interests.
                 </p>
 
@@ -432,19 +433,19 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     setData((prev) => ({ ...prev, bio: e.target.value }))
                   }
                   placeholder="I'm a passionate software developer with experience in web development and machine learning. I love building innovative solutions and contributing to open-source projects..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
+                  className="w-full px-3 py-2 bg-primary-900 border border-primary-700 rounded-md text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent h-32 resize-none"
                   maxLength={500}
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-primary-400 mt-1">
                   {data.bio.length}/500 characters
                 </p>
               </div>
 
-              <div className="bg-blue-50 p-4 rounded-md">
-                <h4 className="font-medium text-blue-900 mb-2">
+              <div className="bg-accent-600 bg-opacity-20 border border-accent-600 border-opacity-30 p-4 rounded-md">
+                <h4 className="font-medium text-accent-400 mb-2">
                   Ready for verification?
                 </h4>
-                <p className="text-blue-700 text-sm">
+                <p className="text-accent-300 text-sm">
                   We'll use AI to verify your skills against your professional
                   profiles. This helps build trust in the SkillDOM community.
                 </p>
@@ -459,8 +460,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 <div
                   className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${
                     verificationResult.isVerified
-                      ? "bg-green-100 text-green-600"
-                      : "bg-yellow-100 text-yellow-600"
+                      ? "bg-success-600 bg-opacity-20 text-success-400 border border-success-600 border-opacity-30"
+                      : "bg-warning-600 bg-opacity-20 text-warning-400 border border-warning-600 border-opacity-30"
                   }`}
                 >
                   {verificationResult.isVerified ? (
@@ -469,14 +470,14 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     <AlertCircle className="w-8 h-8" />
                   )}
                 </div>
-                <h3 className="text-xl font-semibold mb-2">
+                <h3 className="text-xl font-semibold mb-2 text-white">
                   {verificationResult.isVerified
                     ? verificationResult.confidence > 0.8
                       ? "Skills Verified!"
                       : "Skills Partially Verified!"
                     : "Verification Incomplete"}
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-primary-300 mb-4">
                   Confidence Score:{" "}
                   {Math.round(verificationResult.confidence * 100)}%
                 </p>
@@ -485,7 +486,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <div className="space-y-4">
                 {verificationResult.verifiedSkills.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                    <h4 className="font-medium text-success-400 mb-2 flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
                       Verified Skills (
                       {verificationResult.verifiedSkills.length})
@@ -494,7 +495,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       {verificationResult.verifiedSkills.map((skill, index) => (
                         <span
                           key={index}
-                          className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
+                          className="bg-success-600 bg-opacity-20 text-success-400 border border-success-600 border-opacity-30 px-3 py-1 rounded-full text-sm"
                         >
                           {skill}
                         </span>
@@ -505,7 +506,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                 {verificationResult.unverifiedSkills.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                    <h4 className="font-medium text-warning-400 mb-2 flex items-center gap-2">
                       <AlertCircle className="w-4 h-4" />
                       Needs More Evidence (
                       {verificationResult.unverifiedSkills.length})
@@ -515,7 +516,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         (skill, index) => (
                           <span
                             key={index}
-                            className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm"
+                            className="bg-warning-600 bg-opacity-20 text-warning-400 border border-warning-600 border-opacity-30 px-3 py-1 rounded-full text-sm"
                           >
                             {skill}
                           </span>
@@ -526,24 +527,24 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 )}
 
                 <div>
-                  <h4 className="font-medium text-gray-800 mb-2">
+                  <h4 className="font-medium text-primary-300 mb-2">
                     AI Analysis
                   </h4>
-                  <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-md">
+                  <p className="text-primary-300 text-sm bg-primary-900 border border-primary-700 p-3 rounded-md">
                     {verificationResult.reasoning}
                   </p>
                 </div>
 
                 {verificationResult.suggestions.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-gray-800 mb-2">
+                    <h4 className="font-medium text-primary-300 mb-2">
                       Suggestions for Improvement
                     </h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                    <ul className="text-sm text-primary-400 space-y-1">
                       {verificationResult.suggestions.map(
                         (suggestion, index) => (
                           <li key={index} className="flex items-start gap-2">
-                            <span className="text-blue-500 mt-1">•</span>
+                            <span className="text-accent-500 mt-1">•</span>
                             {suggestion}
                           </li>
                         )
@@ -558,24 +559,42 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {/* Verification Loading */}
           {isVerifying && (
             <div className="text-center py-12">
-              <LoadingSpinner />
-              <h3 className="text-lg font-semibold mt-4 mb-2">
-                Verifying with AI...
-              </h3>
-              <p className="text-gray-600">
-                Our AI is analyzing your profiles and skills. This may take a
-                few moments.
-              </p>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-700 border-t-accent-500"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-accent-400 animate-ping opacity-20"></div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-white">
+                    Verifying with AI...
+                  </h3>
+                  <p className="text-primary-300 text-sm">
+                    Our AI is analyzing your profiles and skills. This may take
+                    a few moments.
+                  </p>
+                  <div className="flex items-center justify-center space-x-1 mt-3">
+                    <div className="w-2 h-2 bg-accent-500 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-2 h-2 bg-accent-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-accent-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
         {/* Footer */}
         {!isVerifying && (
-          <div className="flex items-center justify-between p-6 border-t bg-gray-50">
+          <div className="flex items-center justify-between p-6 border-t border-primary-800 bg-primary-900">
             <button
               onClick={step === 1 ? onClose : handleBack}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 text-primary-400 hover:text-primary-200"
               disabled={isSubmitting}
             >
               {step === 1 ? "Skip for now" : "Back"}
@@ -586,7 +605,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 <button
                   onClick={handleNext}
                   disabled={step === 1 && data.skills.length === 0}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-accent-600 text-white rounded-md hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
@@ -596,7 +615,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 <button
                   onClick={handleVerifySkills}
                   disabled={data.skills.length === 0}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2 bg-accent-600 text-white rounded-md hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   Verify Skills
                 </button>
@@ -606,7 +625,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 <button
                   onClick={handleComplete}
                   disabled={isSubmitting}
-                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2 bg-success-600 text-white rounded-md hover:bg-success-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
