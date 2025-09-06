@@ -38,8 +38,15 @@ const HomePage: React.FC = () => {
     return !isEnrolled && !isCompleted && !isOwnCourse;
   });
 
-  const recommendedCourses = availableCourses.slice(0, 3);
-  const trendingCourses = availableCourses.slice(3, 6); // Start from index 3 to avoid overlap
+  const recommendedCourses = availableCourses; // Show all available courses in recommended section
+
+  // Get 3 random courses for trending section
+  const getRandomCourses = (courses: Course[], count: number) => {
+    const shuffled = [...courses].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
+  const trendingCourses = getRandomCourses(availableCourses, 3);
 
   return (
     <div className="min-h-screen bg-primary-700 text-white">
@@ -84,8 +91,8 @@ const HomePage: React.FC = () => {
           </div>
           <div className="flex space-x-4 overflow-x-auto pb-4">
             {isLoading ? (
-              // Loading skeleton
-              Array.from({ length: 3 }).map((_, i) => (
+              // Loading skeleton - show more placeholders
+              Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
                   className="flex-shrink-0 w-80 h-64 bg-primary-600 rounded-xl animate-pulse"
@@ -138,7 +145,7 @@ const HomePage: React.FC = () => {
                 <TrendingUp className="text-gray-500 mx-auto mb-4" size={48} />
                 <p className="text-gray-400">No trending courses available</p>
                 <p className="text-gray-500 text-sm mt-1">
-                  All trending courses are already in your library!
+                  Check back later for trending content!
                 </p>
               </div>
             )}
