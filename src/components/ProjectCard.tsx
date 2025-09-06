@@ -3,6 +3,7 @@ import { Users, CheckCircle, Clock, Calendar, Star, Plus } from "lucide-react";
 import { users } from "../data/mockData";
 import { Project, joinProject, leaveProject } from "../services/projectService";
 import { useAuth } from "../contexts/AuthContext";
+import ProjectDetailsModal from "./ProjectDetailsModal";
 
 interface ProjectCardProps {
   project: Project;
@@ -17,6 +18,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Get member details from users data (for display purposes)
   const members = users.filter((u: any) =>
@@ -28,7 +30,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   const canJoin =
     !isMember &&
     project.current_members.length < project.max_members &&
-    project.status === "open";
+    (project.status === "open" || project.status === "in-progress");
 
   // *** FIX STARTS HERE: These configurations were missing ***
   const statusConfig = {
@@ -107,13 +109,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
           {/* Project metadata */}
           <div className="flex flex-wrap items-center gap-3 text-xs text-gray-300">
-            <div className={`flex items-center gap-1.5 ${diffConfig.bg} px-2 py-1 rounded-full`}>
+            <div
+              className={`flex items-center gap-1.5 ${diffConfig.bg} px-2 py-1 rounded-full`}
+            >
               <Star size={14} className={diffConfig.color} />
               <span className={`${diffConfig.color} font-semibold capitalize`}>
                 {project.difficulty_level}
               </span>
             </div>
-             {project.estimated_duration && (
+            {project.estimated_duration && (
               <div className="flex items-center gap-1.5">
                 <Clock size={14} />
                 <span>{project.estimated_duration}</span>
@@ -131,10 +135,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
       {/* Required Skills */}
       <div className="mb-4 pt-4 border-t border-primary-700">
-        <h4 className="text-sm font-semibold text-gray-200 mb-2">Required Skills</h4>
+        <h4 className="text-sm font-semibold text-gray-200 mb-2">
+          Required Skills
+        </h4>
         <div className="flex flex-wrap gap-2">
           {project.required_skills.map((skill, index) => (
-            <span key={index} className="bg-accent-500/20 text-accent-300 px-2.5 py-1 rounded-full text-xs font-semibold">
+            <span
+              key={index}
+              className="bg-accent-500/20 text-accent-300 px-2.5 py-1 rounded-full text-xs font-semibold"
+            >
               {skill}
             </span>
           ))}
@@ -169,15 +178,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         </div>
 
         <div className="flex gap-2">
-           {canJoin && (
-            <button
-              onClick={handleJoinProject}
-              disabled={isLoading}
-              className="bg-accent-500 hover:bg-accent-600 disabled:bg-accent-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm flex items-center gap-2 shadow-md shadow-accent-500/20"
-            >
-              <Plus size={16} />
-              {isLoading ? "Joining..." : "Join"}
-            </button>
+          {canJoin && (
+            <>
+              <button
+                onClick={handleJoinProject}
+                disabled={isLoading}
+                className="bg-accent-500 hover:bg-accent-600 disabled:bg-accent-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm flex items-center gap-2 shadow-md shadow-accent-500/20"
+              >
+                <Plus size={16} />
+                {isLoading ? "Joining..." : "Join"}
+              </button>
+              <button
+                onClick={() => setShowDetailsModal(true)}
+                className="bg-primary-600 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+              >
+                Details
+              </button>
+            </>
           )}
 
           {isMember && !isCreator && (
@@ -190,19 +207,33 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             </button>
           )}
 
-           {isMember && (
-            <button className="bg-primary-600 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+          {isMember && (
+            <button
+              onClick={() => setShowDetailsModal(true)}
+              className="bg-primary-600 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+            >
               View Details
             </button>
           )}
-          
+
           {!isMember && !canJoin && (
-             <button disabled className="bg-primary-700/60 text-gray-400 font-medium py-2 px-4 rounded-lg text-sm cursor-not-allowed">
-                {project.status === "open" ? "Team Full" : "View Details"}
+            <button
+              onClick={() => setShowDetailsModal(true)}
+              className="bg-primary-600 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+            >
+              View Details
             </button>
           )}
         </div>
       </div>
+
+      {/* Project Details Modal */}
+      {showDetailsModal && (
+        <ProjectDetailsModal
+          project={project}
+          onClose={() => setShowDetailsModal(false)}
+        />
+      )}
     </div>
   );
 };
