@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Users, Code, Search, Filter, X, Target, Briefcase, CheckCircle, PauseCircle, Star } from "lucide-react";
+import {
+  Plus,
+  Users,
+  Code,
+  Search,
+  Filter,
+  X,
+  Target,
+  Briefcase,
+  CheckCircle,
+  PauseCircle,
+  Star,
+} from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 import CreateProjectModal from "../components/CreateProjectModal";
-import LoadingSpinner from "../components/LoadingSpinner";
+import SectionLoader from "../components/SectionLoader";
 import {
   Project,
   getAllProjects,
@@ -24,13 +36,28 @@ const CollaborationHub: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const categories = [
-    "Web Development", "Mobile Development", "Data Science", "AI/ML", "Design",
-    "Game Development", "Blockchain", "DevOps", "Other",
+    "Web Development",
+    "Mobile Development",
+    "Data Science",
+    "AI/ML",
+    "Design",
+    "Game Development",
+    "Blockchain",
+    "DevOps",
+    "Other",
   ];
 
   const popularSkills = [
-    "React", "Python", "JavaScript", "TypeScript", "Node.js", "UI/UX Design",
-    "Machine Learning", "AWS", "Docker", "GraphQL",
+    "React",
+    "Python",
+    "JavaScript",
+    "TypeScript",
+    "Node.js",
+    "UI/UX Design",
+    "Machine Learning",
+    "AWS",
+    "Docker",
+    "GraphQL",
   ];
 
   const tabs = [
@@ -78,7 +105,11 @@ const CollaborationHub: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim() && !selectedCategory && selectedSkills.length === 0) {
+    if (
+      !searchQuery.trim() &&
+      !selectedCategory &&
+      selectedSkills.length === 0
+    ) {
       loadAllProjects();
       return;
     }
@@ -108,8 +139,12 @@ const CollaborationHub: React.FC = () => {
   };
 
   const handleProjectUpdate = (updatedProject: Project) => {
-    setProjects((prev) => prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)));
-    setMyProjects((prev) => prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)));
+    setProjects((prev) =>
+      prev.map((p) => (p.id === updatedProject.id ? updatedProject : p))
+    );
+    setMyProjects((prev) =>
+      prev.map((p) => (p.id === updatedProject.id ? updatedProject : p))
+    );
   };
 
   const toggleSkillFilter = (skill: string) => {
@@ -125,14 +160,19 @@ const CollaborationHub: React.FC = () => {
     loadAllProjects();
   };
 
-  const getProjectsByStatus = (status: string) => myProjects.filter((p) => p.status === status);
+  const getProjectsByStatus = (status: string) =>
+    myProjects.filter((p) => p.status === status);
 
   return (
     <div className="min-h-screen bg-primary-900 text-white pb-20">
       {/* Header */}
       <header className="bg-gradient-to-b from-primary-800 to-primary-900 p-6 shadow-xl border-b border-primary-700/50 sticky top-0 z-30">
-        <h1 className="text-3xl font-bold mb-1 text-white">Collaboration Hub</h1>
-        <p className="text-gray-400 mb-6">Discover, create, and manage your collaborative projects.</p>
+        <h1 className="text-3xl font-bold mb-1 text-white">
+          Collaboration Hub
+        </h1>
+        <p className="text-gray-400 mb-6">
+          Discover, create, and manage your collaborative projects.
+        </p>
 
         {/* Tabs */}
         <div className="grid grid-cols-3 gap-2 bg-primary-700/50 rounded-xl p-1">
@@ -175,7 +215,7 @@ const CollaborationHub: React.FC = () => {
                     className="absolute right-0 top-0 h-full px-4 text-gray-400 hover:text-accent-400 transition-colors"
                     title="Search"
                   >
-                    <Search size={20}/>
+                    <Search size={20} />
                   </button>
                   {/* --- END FIX --- */}
                 </div>
@@ -196,7 +236,9 @@ const CollaborationHub: React.FC = () => {
               {showFilters && (
                 <div className="border-t border-primary-700 pt-4 mt-4 space-y-4 animate-fade-in">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Category
+                    </label>
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
@@ -204,12 +246,16 @@ const CollaborationHub: React.FC = () => {
                     >
                       <option value="">All Categories</option>
                       {categories.map((category) => (
-                        <option key={category} value={category}>{category}</option>
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Skills</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Skills
+                    </label>
                     <div className="flex flex-wrap gap-2">
                       {popularSkills.map((skill) => (
                         <button
@@ -227,8 +273,18 @@ const CollaborationHub: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={handleSearch} className="bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">Apply Filters</button>
-                    <button onClick={clearFilters} className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors text-sm">Clear All</button>
+                    <button
+                      onClick={handleSearch}
+                      className="bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+                    >
+                      Apply Filters
+                    </button>
+                    <button
+                      onClick={clearFilters}
+                      className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+                    >
+                      Clear All
+                    </button>
                   </div>
                 </div>
               )}
@@ -240,13 +296,26 @@ const CollaborationHub: React.FC = () => {
                   {selectedCategory && (
                     <span className="flex items-center gap-1.5 bg-accent-500/20 text-accent-300 px-2 py-1 rounded-full text-xs">
                       {selectedCategory}
-                      <button onClick={() => setSelectedCategory("")} className="hover:text-accent-100"><X size={14} /></button>
+                      <button
+                        onClick={() => setSelectedCategory("")}
+                        className="hover:text-accent-100"
+                      >
+                        <X size={14} />
+                      </button>
                     </span>
                   )}
                   {selectedSkills.map((skill) => (
-                    <span key={skill} className="flex items-center gap-1.5 bg-accent-500/20 text-accent-300 px-2 py-1 rounded-full text-xs">
+                    <span
+                      key={skill}
+                      className="flex items-center gap-1.5 bg-accent-500/20 text-accent-300 px-2 py-1 rounded-full text-xs"
+                    >
                       {skill}
-                      <button onClick={() => toggleSkillFilter(skill)} className="hover:text-accent-100"><X size={14} /></button>
+                      <button
+                        onClick={() => toggleSkillFilter(skill)}
+                        className="hover:text-accent-100"
+                      >
+                        <X size={14} />
+                      </button>
                     </span>
                   ))}
                 </div>
@@ -255,24 +324,37 @@ const CollaborationHub: React.FC = () => {
 
             {/* Projects Grid */}
             {loading ? (
-              <div className="flex justify-center py-20"><LoadingSpinner /></div>
+              <SectionLoader message="Loading projects..." />
             ) : projects.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {projects.map((project) => (
-                  <ProjectCard key={project.id} project={project} onProjectUpdate={handleProjectUpdate} />
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onProjectUpdate={handleProjectUpdate}
+                  />
                 ))}
               </div>
             ) : (
               <div className="text-center py-20 bg-primary-800 rounded-lg">
                 <Target className="mx-auto mb-4 text-gray-500" size={48} />
-                <h3 className="text-xl font-semibold text-white mb-2">No Projects Found</h3>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  No Projects Found
+                </h3>
                 <p className="text-gray-400 mb-6">
                   {searchQuery || selectedCategory || selectedSkills.length > 0
                     ? "Try adjusting your search criteria or filters."
                     : "No projects are currently available for collaboration."}
                 </p>
-                {(searchQuery || selectedCategory || selectedSkills.length > 0) && (
-                  <button onClick={clearFilters} className="bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded-lg transition-colors">Clear Filters</button>
+                {(searchQuery ||
+                  selectedCategory ||
+                  selectedSkills.length > 0) && (
+                  <button
+                    onClick={clearFilters}
+                    className="bg-accent-500 hover:bg-accent-600 text-white px-5 py-2.5 rounded-lg transition-colors"
+                  >
+                    Clear Filters
+                  </button>
                 )}
               </div>
             )}
@@ -287,9 +369,12 @@ const CollaborationHub: React.FC = () => {
                 <Plus className="text-white" size={40} strokeWidth={3} />
               </div>
             </div>
-            <h2 className="text-3xl font-bold text-white mb-2">Have an Idea? Let's Build It.</h2>
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Have an Idea? Let's Build It.
+            </h2>
             <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-              Share your vision, define the skills you need, and connect with talented collaborators from around the community.
+              Share your vision, define the skills you need, and connect with
+              talented collaborators from around the community.
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
@@ -303,23 +388,50 @@ const CollaborationHub: React.FC = () => {
         {activeTab === "my" && (
           <div className="space-y-8">
             {loading ? (
-              <div className="flex justify-center py-20"><LoadingSpinner /></div>
+              <SectionLoader message="Loading your projects..." />
             ) : myProjects.length > 0 ? (
               <>
                 {/* Status Overview - RESPONSIVE GRID (NO SCROLLING) */}
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-4 px-2">Projects Overview</h3>
+                  <h3 className="text-xl font-bold text-white mb-4 px-2">
+                    Projects Overview
+                  </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { status: "open", label: "Open", color: "border-blue-500", icon: Star },
-                      { status: "in-progress", label: "In Progress", color: "border-yellow-500", icon: Code },
-                      { status: "completed", label: "Completed", color: "border-green-500", icon: CheckCircle },
-                      { status: "paused", label: "Paused", color: "border-gray-500", icon: PauseCircle },
+                      {
+                        status: "open",
+                        label: "Open",
+                        color: "border-blue-500",
+                        icon: Star,
+                      },
+                      {
+                        status: "in-progress",
+                        label: "In Progress",
+                        color: "border-yellow-500",
+                        icon: Code,
+                      },
+                      {
+                        status: "completed",
+                        label: "Completed",
+                        color: "border-green-500",
+                        icon: CheckCircle,
+                      },
+                      {
+                        status: "paused",
+                        label: "Paused",
+                        color: "border-gray-500",
+                        icon: PauseCircle,
+                      },
                     ].map(({ status, label, color, icon: Icon }) => (
-                      <div key={status} className={`bg-primary-800/80 backdrop-blur-lg border-l-4 ${color} rounded-lg p-4 transition-all duration-300 hover:bg-primary-700 hover:-translate-y-1`}>
+                      <div
+                        key={status}
+                        className={`bg-primary-800/80 backdrop-blur-lg border-l-4 ${color} rounded-lg p-4 transition-all duration-300 hover:bg-primary-700 hover:-translate-y-1`}
+                      >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-gray-300">{label}</span>
-                          <Icon className="text-gray-500" size={20}/>
+                          <span className="text-sm font-semibold text-gray-300">
+                            {label}
+                          </span>
+                          <Icon className="text-gray-500" size={20} />
                         </div>
                         <div className="text-4xl font-bold text-white">
                           {getProjectsByStatus(status).length}
@@ -332,11 +444,18 @@ const CollaborationHub: React.FC = () => {
                 {/* Projects Grid */}
                 <div>
                   <div className="flex items-center justify-between mb-4 px-2">
-                    <h3 className="text-xl font-bold text-white">Your Project Listings</h3>
+                    <h3 className="text-xl font-bold text-white">
+                      Your Project Listings
+                    </h3>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {myProjects.map((project) => (
-                      <ProjectCard key={project.id} project={project} showStatus onProjectUpdate={handleProjectUpdate} />
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        showStatus
+                        onProjectUpdate={handleProjectUpdate}
+                      />
                     ))}
                   </div>
                 </div>
@@ -344,8 +463,12 @@ const CollaborationHub: React.FC = () => {
             ) : (
               <div className="text-center py-20 bg-primary-800 rounded-lg">
                 <Briefcase className="mx-auto mb-4 text-gray-500" size={48} />
-                <h3 className="text-xl font-semibold text-white mb-2">You Haven't Started Any Projects Yet</h3>
-                <p className="text-gray-400 mb-6">Click the button below to share your first project idea.</p>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  You Haven't Started Any Projects Yet
+                </h3>
+                <p className="text-gray-400 mb-6">
+                  Click the button below to share your first project idea.
+                </p>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="bg-accent-500 hover:bg-accent-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
