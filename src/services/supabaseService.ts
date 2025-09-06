@@ -228,24 +228,11 @@ export const enrollUserInCourse = async (
     throw new Error("Already enrolled in this course");
   }
 
-  // Get course information to find the teacher
-  const { getCourse } = await import("../services/courseService");
-  const course = await getCourse(courseId);
-  if (!course) {
-    throw new Error("Course not found");
-  }
-
-  // Get teacher profile to update their SVC coins
-  const teacher = await getUserProfile(course.teacher_id);
-  if (!teacher) {
-    throw new Error("Course teacher not found");
-  }
-
   // Update student: add course and deduct coins
   const updatedOngoingCourses = [...currentUser.ongoing_courses, courseId];
   const updatedSkillCoins = currentUser.skill_coins - svcCost;
 
-  const { data: studentData, error: studentError } = await supabase
+  const { data, error } = await supabase
     .from("users")
     .update({
       ongoing_courses: updatedOngoingCourses,
@@ -256,26 +243,11 @@ export const enrollUserInCourse = async (
     .select()
     .single();
 
-  if (studentError) {
-    throw new Error(`Failed to enroll in course: ${studentError.message}`);
+  if (error) {
+    throw new Error(`Failed to enroll in course: ${error.message}`);
   }
 
-  // Update teacher: increment SVC coins by course value
-  const teacherUpdatedCoins = teacher.skill_coins + svcCost;
-
-  const { error: teacherError } = await supabase
-    .from("users")
-    .update({
-      skill_coins: teacherUpdatedCoins,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", course.teacher_id);
-
-  if (teacherError) {
-    throw new Error(`Failed to reward teacher: ${teacherError.message}`);
-  }
-
-  return studentData;
+  return data;
 };
 
 // Complete a course and move it to completed courses
@@ -295,6 +267,19 @@ export const completeCourse = async (
     throw new Error("Course not found in ongoing courses");
   }
 
+  // Get course information to find the teacher and course value
+  const { getCourse } = await import("../services/courseService");
+  const course = await getCourse(courseId);
+  if (!course) {
+    throw new Error("Course not found");
+  }
+
+  // Get teacher profile to update their SVC coins
+  const teacher = await getUserProfile(course.teacher_id);
+  if (!teacher) {
+    throw new Error("Course teacher not found");
+  }
+
   // Remove from ongoing, add to completed
   const updatedOngoingCourses = currentUser.ongoing_courses.filter(
     (id) => id !== courseId
@@ -308,7 +293,8 @@ export const completeCourse = async (
   // Add SVC reward if any
   const updatedSkillCoins = currentUser.skill_coins + svcReward;
 
-  const { data, error } = await supabase
+  // Update student: complete course and add reward
+  const { data: studentData, error: studentError } = await supabase
     .from("users")
     .update({
       ongoing_courses: updatedOngoingCourses,
@@ -320,11 +306,26 @@ export const completeCourse = async (
     .select()
     .single();
 
-  if (error) {
-    throw new Error(`Failed to complete course: ${error.message}`);
+  if (studentError) {
+    throw new Error(`Failed to complete course: ${studentError.message}`);
   }
 
-  return data;
+  // Update teacher: increment SVC coins by course value (payment for completed course)
+  const teacherUpdatedCoins = teacher.skill_coins + course.svc_value;
+
+  const { error: teacherError } = await supabase
+    .from("users")
+    .update({
+      skill_coins: teacherUpdatedCoins,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", course.teacher_id);
+
+  if (teacherError) {
+    throw new Error(`Failed to reward teacher: ${teacherError.message}`);
+  }
+
+  return studentData;
 };
 
 // Storage functions for file uploads
