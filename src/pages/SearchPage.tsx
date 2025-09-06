@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Sparkles } from "lucide-react";
-import { skillCategories } from "../data/mockData";
 import CourseCard from "../components/CourseCard";
 import UserCard from "../components/UserCard";
 import { useAuth } from "../contexts/AuthContext";
@@ -99,6 +98,8 @@ const SearchPage: React.FC = () => {
       setResults([]);
       setUserResults([]);
     }
+    // Reset category filter when switching tabs
+    setSelectedCategory("");
   }, [activeTab, allCourses, user?.ongoingCourses, user?.completedCourses]);
 
   // Convert users when userResults change
@@ -145,13 +146,34 @@ const SearchPage: React.FC = () => {
     );
   }
 
+  // Get unique categories from courses and users
+  const getUniqueCategories = () => {
+    const courseCategories = allCourses.map((course) => course.skill_category);
+    const userSkillCategories = userResults.flatMap(
+      (user) => user.skills || []
+    );
+    return [...new Set([...courseCategories, ...userSkillCategories])].filter(
+      Boolean
+    );
+  };
+
+  const availableCategories = getUniqueCategories();
+
   const filteredResults = selectedCategory
-    ? results.filter((item: any) =>
-        activeTab === "courses"
-          ? item.skill_category === selectedCategory
-          : item.skills.includes(selectedCategory)
+    ? results.filter(
+        (course: Course) => course.skill_category === selectedCategory
       )
     : results;
+
+  const filteredUserResults =
+    selectedCategory && activeTab === "people"
+      ? userResults.filter(
+          (user) =>
+            user.skills &&
+            Array.isArray(user.skills) &&
+            user.skills.includes(selectedCategory)
+        )
+      : userResults;
 
   return (
     <div className="min-h-screen bg-primary-700 text-white">
@@ -211,7 +233,7 @@ const SearchPage: React.FC = () => {
           >
             All
           </button>
-          {skillCategories.slice(0, 6).map((category: any) => (
+          {availableCategories.slice(0, 6).map((category: string) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
@@ -240,16 +262,18 @@ const SearchPage: React.FC = () => {
         ) : (
           <div className="space-y-4">
             <p className="text-gray-400 text-sm">
-              {filteredResults.length} {activeTab} found
+              {activeTab === "courses"
+                ? `${filteredResults.length} ${activeTab} found`
+                : `${filteredUserResults.length} ${activeTab} found`}
             </p>
             <div className="grid grid-cols-1 gap-4 animate-fade-in">
               {activeTab === "courses"
-                ? // Display courses
-                  results.map((course) => (
+                ? // Display filtered courses
+                  filteredResults.map((course) => (
                     <CourseCard key={course.id} course={course} />
                   ))
-                : // Display users
-                  userResults
+                : // Display filtered users
+                  filteredUserResults
                     .map((user) => {
                       const convertedUser = convertedUsers[user.id];
                       return convertedUser ? (
